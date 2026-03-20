@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FirmwareLens | Support Center</title>
+    <meta name="description" content="Use the FirmwareLens support center to chat with Sentinel Bot, submit field issue reports, and share feedback.">
+    <link rel="icon" href="/static/logo.png" type="image/png">
+
+    <style>
+        :root {
+            --bg: #07101f;
+            --panel: rgba(11, 19, 43, 0.9);
+            --panel-strong: rgba(10, 18, 38, 0.96);
+            --line: rgba(148, 163, 184, 0.18);
+            --ink: #e6f4ff;
+            --muted: #94a3b8;
+            --accent: #00e5ff;
+            --accent-strong: #3b82f6;
+            --highlight: #00ffa3;
+            --danger: #ff7a7a;
+            --success: #00ffa3;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(0, 229, 255, 0.12), transparent 24%),
+                radial-gradient(circle at top right, rgba(0, 255, 163, 0.08), transparent 22%),
+                linear-gradient(145deg, #040814, #07101f 42%, #0d1730);
+        }
+
+        .page {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 20px 20px 56px;
+        }
+
+        .site-header,
+        .site-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 4px 24px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            background: rgba(8, 17, 33, 0.88);
+            box-shadow: 0 16px 34px rgba(0, 229, 255, 0.18);
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .brand-title { font-size: 18px; font-weight: 800; }
+        .brand-subtitle, .footer-copy { color: var(--muted); font-size: 13px; }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .header-tag,
+        .header-link {
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(11, 19, 43, 0.72);
+            border: 1px solid var(--line);
+            font-size: 13px;
+            color: var(--muted);
+            text-decoration: none;
+        }
+
+        .hero {
+            padding: 30px;
+            border-radius: 28px;
+            background: linear-gradient(145deg, rgba(11, 19, 43, 0.98), rgba(13, 23, 48, 0.98));
+            border: 1px solid var(--line);
+            color: white;
+            margin-bottom: 20px;
+            box-shadow: 0 28px 80px rgba(2, 6, 23, 0.4);
+        }
+
+        .eyebrow {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(0, 229, 255, 0.12);
+            border: 1px solid rgba(0, 229, 255, 0.16);
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #8ae9ff;
+            margin-bottom: 10px;
+        }
+
+        .hero h1 { margin: 0 0 10px; font-size: 34px; }
+        .hero p { margin: 0; color: rgba(230, 244, 255, 0.86); line-height: 1.65; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 18px;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            box-shadow: 0 14px 32px rgba(2, 6, 23, 0.25);
+            padding: 22px;
+            margin-bottom: 18px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 24px;
+        }
+
+        form {
+            display: grid;
+            gap: 10px;
+        }
+
+        label {
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        input, textarea, select, button {
+            width: 100%;
+            font: inherit;
+        }
+
+        input, textarea, select {
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(8, 17, 33, 0.9);
+            color: var(--ink);
+        }
+
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        button {
+            padding: 14px 18px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            color: #03111e;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .success {
+            color: var(--success);
+            margin-bottom: 10px;
+        }
+
+        .error {
+            color: var(--danger);
+            margin-bottom: 10px;
+        }
+
+        .chat-entry,
+        .report-entry {
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(8, 17, 33, 0.78);
+            border: 1px solid var(--line);
+            margin-top: 10px;
+        }
+
+        .scan-context {
+            padding: 14px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(59, 130, 246, 0.08));
+            border: 1px solid rgba(0, 229, 255, 0.14);
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 940px) {
+            .grid { grid-template-columns: 1fr; }
+            .site-header, .site-footer { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <header class="site-header">
+            <a class="brand" href="/">
+                <div class="logo"><img src="/static/logo.png" alt="FirmwareLens logo"></div>
+                <div>
+                    <div class="brand-title">FirmwareLens</div>
+                    <div class="brand-subtitle">Support Center</div>
+                </div>
+            </a>
+            <div class="header-actions">
+                <div class="header-tag">Signed in as {{ user.username if user else 'Guest' }}</div>
+                <a class="header-link" href="/">Analyzer</a>
+                <a class="header-link" href="/logout">Logout</a>
+            </div>
+        </header>
+
+        <section class="hero">
+            <span class="eyebrow">Powered By Sentinel Bot</span>
+            <h1>Support, Feedback, And Field Issue Guidance</h1>
+            <p>FirmwareLens keeps your scan follow-up in one place. Ask Sentinel Bot about findings, report issues from the field when a debugger is unavailable, and collect product feedback without leaving the workflow.</p>
+        </section>
+
+        {% if success %}
+            <div class="success">{{ success }}</div>
+        {% endif %}
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+        {% if guest_mode %}
+            <div class="card" style="margin-bottom:18px;">
+                <strong>Guest mode</strong>
+                <p style="margin-bottom:0;">Sentinel Bot can still answer questions and generate field guidance here, but conversation history, saved reports, and feedback storage require a full account.</p>
+            </div>
+        {% endif %}
+
+        <section class="grid">
+            <div>
+                <div class="card">
+                    <h3>Chat With Sentinel Bot</h3>
+                    {% if scan_result %}
+                        <div class="scan-context">
+                            <strong>Attached scan:</strong> {{ scan_result.scan_id }}<br>
+                            <strong>Firmware type:</strong> {{ scan_result.firmware_type }}<br>
+                            <strong>Top findings:</strong> {{ scan_result.top_findings|length }}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" action="/bot-chat" data-analytics-event="bot_chat_submitted" data-analytics-label="support_chat">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="scan_id" value="{{ scan_id or '' }}">
+                        <label for="message">Question</label>
+                        <textarea id="message" name="message" placeholder="Ask Sentinel Bot about crashes, secrets, connectivity, memory, OTA, or scan findings..." required>{{ last_user_message or '' }}</textarea>
+                        <button type="submit">Ask Sentinel Bot</button>
+                    </form>
+
+                    {% if bot_reply %}
+                        <div class="chat-entry">
+                            <strong>Sentinel Bot Reply</strong>
+                            <p>{{ bot_reply }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <h3>Report A Field Issue</h3>
+                    <form method="post" action="/field-report" data-analytics-event="field_issue_submitted" data-analytics-label="support_field_issue">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <label for="title">Issue Title</label>
+                        <input id="title" name="title" type="text" placeholder="Device reboots during OTA update" required>
+
+                        <label for="device_model">Device Model</label>
+                        <input id="device_model" name="device_model" type="text" placeholder="STM32 gateway v2">
+
+                        <label for="firmware_version">Firmware Version</label>
+                        <input id="firmware_version" name="firmware_version" type="text" placeholder="1.2.7">
+
+                        <label for="symptoms">Symptoms</label>
+                        <textarea id="symptoms" name="symptoms" placeholder="Describe what users see in the field when the debugger is unavailable..." required></textarea>
+
+                        <label for="environment">Environment / Notes</label>
+                        <textarea id="environment" name="environment" placeholder="Network conditions, recent rollout, logs, power conditions, remote access limits..."></textarea>
+
+                        <button type="submit">Generate Field Guidance</button>
+                    </form>
+
+                    {% if generated_solution %}
+                        <div class="report-entry">
+                            <strong>Generated Guidance{% if generated_report_id %} #{{ generated_report_id }}{% endif %}</strong>
+                            <p>{{ generated_solution }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <h3>Give Feedback</h3>
+                    {% if guest_mode %}
+                        <p>Create an account if you want feedback saved to your history and linked to future product updates.</p>
+                    {% else %}
+                        <form method="post" action="/feedback" data-analytics-event="feedback_attempt" data-analytics-label="support_feedback">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <label for="rating">Rating</label>
+                            <select id="rating" name="rating">
+                                <option value="">Select rating</option>
+                                <option value="5">5 - Excellent</option>
+                                <option value="4">4 - Good</option>
+                                <option value="3">3 - Useful but needs work</option>
+                                <option value="2">2 - Weak</option>
+                                <option value="1">1 - Poor</option>
+                            </select>
+
+                            <label for="category">Category</label>
+                            <select id="category" name="category">
+                                <option value="product">Product</option>
+                                <option value="bot">Bot response</option>
+                                <option value="report">Report quality</option>
+                                <option value="field-support">Field support</option>
+                            </select>
+
+                            <label for="feedback_message">Message</label>
+                            <textarea id="feedback_message" name="message" placeholder="Tell us what is working, missing, or confusing..." required></textarea>
+
+                            <button type="submit">Submit Feedback</button>
+                        </form>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <h3>Recent Bot Conversations</h3>
+                    {% if bot_messages %}
+                        {% for item in bot_messages %}
+                            <div class="chat-entry">
+                                <strong>You:</strong> {{ item.user_message }}<br><br>
+                                <strong>Bot:</strong> {{ item.bot_response }}<br><br>
+                                <span style="color:#94a3b8;font-size:12px;">{{ item.created_at }}</span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No bot conversations yet.</p>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <h3>Recent Field Reports</h3>
+                    {% if field_reports %}
+                        {% for item in field_reports %}
+                            <div class="report-entry">
+                                <strong>{{ item.title }}</strong><br>
+                                <span style="color:#94a3b8;font-size:12px;">{{ item.created_at }}</span>
+                                <p><b>Symptoms:</b> {{ item.symptoms }}</p>
+                                <p><b>Bot Solution:</b> {{ item.bot_solution }}</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No field issue reports yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <footer class="site-footer">
+            <div class="footer-copy">FirmwareLens keeps reports, support chat, feedback, and field issue follow-up in one place.</div>
+            <div class="footer-copy">Sentinel Bot is built into the support flow for guided answers and field-ready triage.</div>
+        </footer>
+    </div>
+    {% include "_analytics.html" %}
+</body>
+</html>

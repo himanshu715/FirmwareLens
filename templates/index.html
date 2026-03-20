@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FirmwareLens | Firmware Security Made Simple</title>
+    <meta name="description" content="FirmwareLens helps developers, students, and IoT teams upload firmware, detect risks, and get readable security reports with Sentinel Bot guidance.">
+    <meta name="robots" content="index,follow">
+    <meta property="og:title" content="FirmwareLens | Firmware Security Made Simple">
+    <meta property="og:description" content="Upload firmware, detect secrets and weak patterns, and get a clear report with Sentinel Bot support.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ site_origin }}/">
+    <link rel="canonical" href="{{ site_origin }}/">
+    <link rel="icon" href="/static/logo.png" type="image/png">
+
+    <style>
+        :root {
+            --bg: #07101f;
+            --bg-soft: #0d1730;
+            --panel: rgba(11, 19, 43, 0.88);
+            --panel-strong: rgba(10, 18, 38, 0.96);
+            --line: rgba(148, 163, 184, 0.18);
+            --ink: #e6f4ff;
+            --muted: #94a3b8;
+            --accent: #00e5ff;
+            --accent-strong: #3b82f6;
+            --highlight: #00ffa3;
+            --danger: #ff7a7a;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(0, 229, 255, 0.12), transparent 24%),
+                radial-gradient(circle at top right, rgba(0, 255, 163, 0.08), transparent 22%),
+                linear-gradient(145deg, #040814, #07101f 42%, #0d1730);
+        }
+
+        .page {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 20px 20px 64px;
+        }
+
+        .site-header,
+        .site-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 4px 24px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            background: rgba(8, 17, 33, 0.88);
+            box-shadow: 0 16px 34px rgba(0, 229, 255, 0.18);
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .brand-title { font-size: 18px; font-weight: 800; }
+        .brand-subtitle, .footer-copy { color: var(--muted); font-size: 13px; }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .header-tag,
+        .header-link {
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(11, 19, 43, 0.72);
+            border: 1px solid var(--line);
+            font-size: 13px;
+            color: var(--muted);
+            text-decoration: none;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.12fr 0.88fr;
+            gap: 22px;
+            align-items: start;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 28px;
+            box-shadow: 0 28px 80px rgba(2, 6, 23, 0.38);
+            backdrop-filter: blur(14px);
+        }
+
+        .hero-copy {
+            padding: 36px;
+            background:
+                linear-gradient(160deg, rgba(11, 19, 43, 0.96), rgba(13, 23, 48, 0.96)),
+                linear-gradient(135deg, var(--accent), var(--highlight));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-copy::after {
+            content: "";
+            position: absolute;
+            inset: auto -20% -35% auto;
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, rgba(0, 229, 255, 0.18), transparent 64%);
+            pointer-events: none;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(0, 229, 255, 0.12);
+            border: 1px solid rgba(0, 229, 255, 0.16);
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            color: #8ae9ff;
+        }
+
+        h1 {
+            margin: 0 0 14px;
+            font-size: 48px;
+            line-height: 1.03;
+        }
+
+        .hero-copy p {
+            margin: 0 0 14px;
+            font-size: 17px;
+            line-height: 1.65;
+            color: rgba(230, 244, 255, 0.86);
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-list div {
+            padding: 14px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            font-size: 14px;
+        }
+
+        .hero-list strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .upload-card { padding: 28px; background: var(--panel-strong); }
+        .upload-card h2 { margin: 0 0 10px; font-size: 28px; }
+
+        .subtitle {
+            font-size: 15px;
+            color: var(--muted);
+            margin-bottom: 18px;
+            line-height: 1.6;
+        }
+
+        .upload-box,
+        .item,
+        .bot-card,
+        .compare-card {
+            display: block;
+            border-radius: 18px;
+            background: rgba(8, 17, 33, 0.8);
+            border: 1px solid var(--line);
+        }
+
+        .upload-box {
+            border: 2px dashed rgba(0, 229, 255, 0.24);
+            padding: 30px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: 0.2s;
+            text-align: center;
+        }
+
+        .upload-box:hover { border-color: var(--accent); background: rgba(8, 17, 33, 0.96); }
+        .upload-box.dragover { border-color: var(--highlight); background: rgba(0, 255, 163, 0.08); }
+        input[type="file"] { display: none; }
+
+        button {
+            width: 100%;
+            padding: 14px 22px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            color: #03111e;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .file-name { margin-top: 10px; font-size: 14px; color: var(--ink); }
+        .error { color: var(--danger); font-size: 13px; margin-top: 5px; }
+        .loader { display: none; margin-top: 15px; color: var(--muted); }
+
+        .progress-bar {
+            width: 100%;
+            background: rgba(148, 163, 184, 0.14);
+            height: 8px;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--highlight));
+            transition: width 0.3s;
+        }
+
+        .formats { font-size: 12px; color: #7b8da3; margin-top: 15px; }
+
+        .auth-switch {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .auth-pill {
+            padding: 9px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(8, 17, 33, 0.78);
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .auth-pill.active {
+            color: #03111e;
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            border-color: transparent;
+            font-weight: 800;
+        }
+
+        .auth-stack {
+            display: grid;
+            gap: 14px;
+        }
+
+        .guest-note {
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(0, 229, 255, 0.14);
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(0, 255, 163, 0.05));
+            color: #c8d9ea;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .auth-panel {
+            padding: 16px;
+            border-radius: 18px;
+            background: rgba(8, 17, 33, 0.68);
+            border: 1px solid var(--line);
+        }
+
+        .auth-panel h3 {
+            margin: 0 0 8px;
+            font-size: 18px;
+        }
+
+        .auth-panel p {
+            margin: 0 0 12px;
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .auth-panel label {
+            display: block;
+            margin: 10px 0 6px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .auth-panel input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: rgba(5, 12, 24, 0.92);
+            color: var(--ink);
+            font: inherit;
+        }
+
+        .sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 22px;
+        }
+
+        .full-width-section {
+            margin-top: 22px;
+        }
+
+        .section-card { padding: 24px; }
+        .section-card h3 { margin-top: 0; margin-bottom: 14px; font-size: 24px; }
+        .feature-list, .reason-list { display: grid; gap: 12px; }
+        .item, .bot-card { padding: 16px; }
+        .item strong, .bot-card strong { display: block; margin-bottom: 4px; }
+        .bot-card { background: linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(59, 130, 246, 0.08)); }
+
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .compare-card {
+            padding: 18px;
+        }
+
+        .compare-card h4 {
+            margin: 0 0 8px;
+            font-size: 18px;
+        }
+
+        .compare-card p {
+            margin: 0 0 10px;
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .compare-card ul,
+        .advantage-list {
+            margin: 0;
+            padding-left: 18px;
+            color: #c8d9ea;
+            line-height: 1.7;
+        }
+
+        .positioning-banner {
+            margin-top: 18px;
+            padding: 18px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.1), rgba(0, 255, 163, 0.06));
+            border: 1px solid rgba(0, 229, 255, 0.16);
+        }
+
+        @media (max-width: 940px) {
+            .hero, .sections, .compare-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 38px; }
+            .hero-list { grid-template-columns: 1fr; }
+            .site-header, .site-footer { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+
+    <script>
+        let selectedFile = null;
+
+        function handleFile(input) { processFile(input.files[0]); }
+
+        function processFile(file) {
+            const fileName = document.getElementById("fileName");
+            const error = document.getElementById("error");
+            error.innerText = "";
+            if (!file) return;
+
+            const allowed = [".bin", ".img", ".fw", ".hex", ".elf"];
+            const maxSize = 50 * 1024 * 1024;
+            const validExt = allowed.some(ext => file.name.toLowerCase().endsWith(ext));
+
+            if (!validExt) {
+                error.innerText = "Only .bin, .img, .fw, .hex, .elf files allowed";
+                return;
+            }
+            if (file.size > maxSize) {
+                error.innerText = "File too large (Max 50MB)";
+                return;
+            }
+
+            selectedFile = file;
+            fileName.innerText = "Selected: " + file.name + " (" + (file.size / 1024 / 1024).toFixed(2) + " MB)";
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            document.getElementById("uploadBox").classList.remove("dragover");
+            processFile(event.dataTransfer.files[0]);
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            document.getElementById("uploadBox").classList.add("dragover");
+        }
+
+        function handleDragLeave() {
+            document.getElementById("uploadBox").classList.remove("dragover");
+        }
+
+        function showLoader() {
+            if (!selectedFile) {
+                document.getElementById("error").innerText = "Please select a file";
+                return false;
+            }
+
+            document.getElementById("loader").style.display = "block";
+
+            let progress = 0;
+            const bar = document.getElementById("progressFill");
+            const interval = setInterval(() => {
+                progress += 10;
+                bar.style.width = progress + "%";
+                if (progress >= 100) clearInterval(interval);
+            }, 200);
+
+            return true;
+        }
+    </script>
+</head>
+
+<body>
+    <div class="page">
+        <header class="site-header">
+            <a class="brand" href="/">
+                <div class="logo"><img src="/static/logo.png" alt="FirmwareLens logo"></div>
+                <div>
+                    <div class="brand-title">FirmwareLens</div>
+                    <div class="brand-subtitle">Firmware Security Made Simple</div>
+                </div>
+            </a>
+            <div class="header-actions">
+                <div class="header-tag">Signed in as {{ user.username if user else 'Guest' }}</div>
+                {% if user %}
+                    <a class="header-link" href="/support">Support</a>
+                    <a class="header-link" href="/logout">Logout</a>
+                {% else %}
+                    <a class="header-link" href="/?auth=login#access">Sign In</a>
+                    <a class="header-link" href="/?auth=register#access">Create Account</a>
+                {% endif %}
+            </div>
+        </header>
+
+        <section class="hero">
+            <div class="panel hero-copy">
+                <span class="eyebrow">Launch Edition</span>
+                <h1>Firmware Security Made Simple</h1>
+                <p>Upload firmware and get fast, readable security insights without needing source code, hardware labs, or a complex reverse-engineering workflow.</p>
+                <p>FirmwareLens scans for hardcoded secrets, weak crypto, suspicious strings, outdated components, and risky implementation patterns, then layers in Sentinel Bot guidance for triage and field support.</p>
+
+                <div class="hero-list">
+                    <div><strong>Binary-first analysis</strong> Scan firmware images directly, even when source code is unavailable.</div>
+                    <div><strong>Readable reports</strong> Get a full findings view, executive framing, and PDF export in one workflow.</div>
+                    <div><strong>Sentinel Bot built in</strong> Ask follow-up questions and get guided next steps from the assistant.</div>
+                    <div><strong>Field-ready support</strong> Capture device issues and generate bot-guided actions when no debugger is available.</div>
+                </div>
+            </div>
+
+            <div class="panel upload-card" id="access">
+                {% if user %}
+                    <h2>Upload Firmware</h2>
+                    <div class="subtitle">Start a FirmwareLens scan and get a complete report with evidence, severity, business framing, and Sentinel Bot support.</div>
+
+                    {% if user.guest %}
+                        <div class="guest-note">
+                            <strong>Guest session active.</strong> You can scan firmware and view reports right away. Scan access stays tied to this browser session, while saved support history and feedback still require an account.
+                        </div>
+                    {% endif %}
+
+                    <form action="/analyze" method="post" enctype="multipart/form-data" onsubmit="return showLoader()" data-analytics-event="scan_started" data-analytics-label="home_upload">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                        <label id="uploadBox" class="upload-box"
+                            ondrop="handleDrop(event)"
+                            ondragover="handleDragOver(event)"
+                            ondragleave="handleDragLeave()">
+                            Drag and drop a firmware file or click to upload
+                            <input type="file" name="firmware" onchange="handleFile(this)" required>
+                        </label>
+
+                        <div id="fileName" class="file-name"></div>
+                        <div id="error" class="error">{{ error or "" }}</div>
+
+                        <button id="submitButton" type="submit">Run FirmwareLens Scan</button>
+
+                        <div id="loader" class="loader">
+                            FirmwareLens is analyzing your firmware and Sentinel Bot is preparing launch-ready guidance...
+                            <div class="progress-bar">
+                                <div id="progressFill" class="progress-fill"></div>
+                            </div>
+                        </div>
+
+                        <div class="formats">
+                            Supported: .bin, .img, .fw, .hex, .elf | Max size: 50MB | Full report and PDF included
+                        </div>
+                    </form>
+                {% else %}
+                    <h2>Sign In To Start</h2>
+                    <div class="subtitle">Access is now built directly into the home page. Sign in or create your account here, then the same page becomes your scan workspace.</div>
+
+                    <div class="auth-switch">
+                        <a class="auth-pill {% if auth_mode == 'login' %}active{% endif %}" href="/?auth=login#access">Login</a>
+                        <a class="auth-pill {% if auth_mode == 'register' %}active{% endif %}" href="/?auth=register#access">Create Account</a>
+                    </div>
+
+                    {% if auth_error %}
+                        <div class="error">{{ auth_error }}</div>
+                    {% endif %}
+
+                    <div class="auth-stack">
+                        <div class="auth-panel">
+                            <h3>{% if auth_mode == 'register' %}Create your account{% else %}Welcome back{% endif %}</h3>
+                            <p>
+                                {% if auth_mode == 'register' %}
+                                    Create your FirmwareLens account to upload firmware, export reports, and use Sentinel Bot support from the same workspace.
+                                {% else %}
+                                    Sign in to unlock firmware scanning, report downloads, support chat, and field issue logging.
+                                {% endif %}
+                            </p>
+
+                            {% if auth_mode == 'register' %}
+                                <form method="post" action="/register" data-analytics-event="register_attempt" data-analytics-label="home_register">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                                    <label for="register_username">Username</label>
+                                    <input id="register_username" name="username" type="text" placeholder="Choose username" value="{{ auth_values.register_username if auth_values else '' }}" required>
+
+                                    <label for="register_password">Password</label>
+                                    <input id="register_password" name="password" type="password" placeholder="Choose password" required>
+
+                                    <label for="register_confirm_password">Confirm Password</label>
+                                    <input id="register_confirm_password" name="confirm_password" type="password" placeholder="Re-enter password" required>
+
+                                    <button type="submit">Create FirmwareLens Account</button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="/login" data-analytics-event="login_attempt" data-analytics-label="home_login">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                                    <label for="login_username">Username</label>
+                                    <input id="login_username" name="username" type="text" placeholder="Enter username" value="{{ auth_values.login_username if auth_values else '' }}" required>
+
+                                    <label for="login_password">Password</label>
+                                    <input id="login_password" name="password" type="password" placeholder="Enter password" required>
+
+                                    <button type="submit">Sign In To FirmwareLens</button>
+                                </form>
+                            {% endif %}
+                        </div>
+
+                        <div class="auth-panel">
+                            <h3>Need quick access?</h3>
+                            <p>Continue as a guest if you want to try the scanner immediately. Guest mode supports scans and reports, but saved support history stays account-based.</p>
+                            <form method="post" action="/guest-login" data-analytics-event="guest_login_attempt" data-analytics-label="home_guest">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <button type="submit">Continue As Guest</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="formats">
+                        After sign-in, this same home page becomes your upload and scan workspace.
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="sections">
+            <div class="panel section-card">
+                <h3>Core Detection</h3>
+                <div class="feature-list">
+                    <div class="item"><strong>Binary Analysis</strong> Scan firmware without source code and inspect evidence that would otherwise stay buried inside the image.</div>
+                    <div class="item"><strong>Vulnerability Signals</strong> Identify weak patterns, unsafe behavior markers, outdated components, and risky implementation choices.</div>
+                    <div class="item"><strong>Secret Detection</strong> Find hardcoded credentials, keys, tokens, and other exposed secrets embedded in the firmware.</div>
+                    <div class="item"><strong>Instant Reports</strong> Review findings online and export a clean PDF report for teams, labs, or release review.</div>
+                </div>
+            </div>
+
+            <div class="panel section-card">
+                <h3>Sentinel Bot</h3>
+                <div class="reason-list">
+                    <div class="bot-card">
+                        <strong>Guided triage</strong>
+                        Sentinel Bot turns raw findings into practical next steps instead of leaving users with a wall of suspicious strings.
+                    </div>
+                    <div class="bot-card">
+                        <strong>Field issue help</strong>
+                        Use the support center to describe failures from real devices and get bot-generated investigation guidance.
+                    </div>
+                    <div class="bot-card">
+                        <strong>Clear reporting</strong>
+                        FirmwareLens keeps the product experience professional while Sentinel Bot handles explanation and follow-up.
+                    </div>
+                    <div class="bot-card">
+                        <strong>Launch-ready workflow</strong>
+                        Login, upload, scan, review, export, and follow up from one place.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="sections">
+            <div class="panel section-card">
+                <h3>Why Teams Choose FirmwareLens</h3>
+                <div class="feature-list">
+                    <div class="item"><strong>No hardware required</strong> Get useful security signals directly from uploaded firmware images.</div>
+                    <div class="item"><strong>No complex setup</strong> Avoid stitching together a manual toolchain just to start triage.</div>
+                    <div class="item"><strong>Fast understanding</strong> Move from upload to action without needing deep reverse-engineering expertise on day one.</div>
+                </div>
+            </div>
+
+            <div class="panel section-card">
+                <h3>How It Works</h3>
+                <div class="feature-list">
+                    <div class="item"><strong>1. Upload firmware</strong> Send a `.bin`, `.img`, `.fw`, `.hex`, or `.elf` file into FirmwareLens.</div>
+                    <div class="item"><strong>2. Automated scan runs</strong> The engine checks for secrets, crypto issues, suspicious strings, libraries, and bad practices.</div>
+                    <div class="item"><strong>3. Review the report</strong> See findings, business framing, and Sentinel Bot guidance instantly.</div>
+                    <div class="item"><strong>4. Export or follow up</strong> Download the PDF or move into support chat and field issue reporting.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel section-card full-width-section">
+            <h3>Where FirmwareLens Fits</h3>
+            <div class="subtitle">Few firmware security tools offer a simple self-serve SaaS workflow. Most existing options are either enterprise-heavy, deeply technical, or research-oriented.</div>
+
+            <div class="compare-grid">
+                <div class="compare-card">
+                    <h4>Enterprise Platforms</h4>
+                    <p>Examples include Keysight and enterprise-focused protection vendors such as Arxan / Digital.ai.</p>
+                    <ul>
+                        <li>Designed for organizations with larger budgets and formal security programs</li>
+                        <li>Often tied to longer procurement cycles and more complex workflows</li>
+                        <li>Less focused on fast self-serve reviews for students, startups, or small engineering teams</li>
+                    </ul>
+                </div>
+
+                <div class="compare-card">
+                    <h4>Advanced Technical Tools</h4>
+                    <p>Examples include Fuzzware and other emulation, fuzzing, or binary-analysis frameworks used in advanced firmware research.</p>
+                    <ul>
+                        <li>Strong at deep technical analysis and binary-only investigation</li>
+                        <li>Usually more hands-on and specialist-oriented</li>
+                        <li>Higher learning curve for non-specialists who want a simple workflow</li>
+                    </ul>
+                </div>
+
+                <div class="compare-card">
+                    <h4>Research and Ecosystem Players</h4>
+                    <p>Examples include MalwareMustDie, ObjectSecurity, Insyde Software, and academic firmware-security projects that influence the wider ecosystem.</p>
+                    <ul>
+                        <li>Important to the market through research, platform security, and ecosystem expertise</li>
+                        <li>Not typically packaged as simple upload-and-scan products for everyday users</li>
+                        <li>Often require more context or manual interpretation than a self-serve SaaS workflow</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="positioning-banner">
+                <strong>FirmwareLens's position:</strong> a UI-first firmware security workflow for developers, students, and IoT teams that want fast results, readable reports, and practical next steps, with Sentinel Bot available for guided support.
+            </div>
+        </section>
+
+        <section class="sections">
+            <div class="panel section-card">
+                <h3>Who It Fits Best</h3>
+                <ul class="advantage-list">
+                    <li>Students learning firmware and embedded security.</li>
+                    <li>IoT teams doing quick release-risk checks.</li>
+                    <li>Researchers and small labs that need a simpler front end.</li>
+                    <li>Support teams handling field failures without a debugger.</li>
+                </ul>
+            </div>
+
+            <div class="panel section-card">
+                <h3>Launch Promise</h3>
+                <ul class="advantage-list">
+                    <li>Upload firmware and start scanning immediately.</li>
+                    <li>Get a clear report instead of raw tool output alone.</li>
+                    <li>Use Sentinel Bot when you need explanation, triage, or field guidance.</li>
+                    <li>Export results cleanly for internal review or release decisions.</li>
+                </ul>
+            </div>
+        </section>
+
+        <footer class="site-footer">
+            <div class="footer-copy">FirmwareLens helps teams and students scan firmware faster, understand risk, and act with confidence.</div>
+            <div class="footer-copy">Sentinel Bot stays inside the workflow for guided support, feedback, and field issue triage.</div>
+        </footer>
+    </div>
+    {% include "_analytics.html" %}
+</body>
+</html>

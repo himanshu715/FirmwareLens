@@ -1,0 +1,45 @@
+{% if ga_measurement_id %}
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_measurement_id }}"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    function firmwareLensTrack(eventName, params) {
+        const payload = Object.assign({ transport_type: "beacon" }, params || {});
+        gtag("event", eventName, payload);
+    }
+
+    gtag("js", new Date());
+    gtag("config", "{{ ga_measurement_id }}");
+
+    {% for event in analytics_events or [] %}
+    firmwareLensTrack({{ event.name|tojson }}, {{ event.params|tojson }});
+    {% endfor %}
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("[data-analytics-event]").forEach(function (element) {
+            const eventName = element.dataset.analyticsEvent;
+            if (!eventName) {
+                return;
+            }
+
+            const track = function () {
+                const params = {};
+                if (element.dataset.analyticsLabel) {
+                    params.label = element.dataset.analyticsLabel;
+                }
+                firmwareLensTrack(eventName, params);
+            };
+
+            if (element.tagName === "FORM") {
+                element.addEventListener("submit", track);
+            } else {
+                element.addEventListener("click", track);
+            }
+        });
+    });
+</script>
+{% endif %}

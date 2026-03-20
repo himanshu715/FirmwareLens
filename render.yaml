@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: firmwarelens
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    healthCheckPath: /health
+    envVars:
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "1"
+      - key: RUNTIME_ROOT
+        value: /var/data/firmwarelens
+      - key: SITE_URL
+        sync: false
+      - key: GA_MEASUREMENT_ID
+        sync: false
+      - key: ADS_TXT_CONTENT
+        sync: false
+      - key: API_ACCESS_KEY
+        sync: false
+    disk:
+      name: firmwarelens-data
+      mountPath: /var/data
+      sizeGB: 1

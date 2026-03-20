@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FirmwareLens | Security Report</title>
+    <meta name="description" content="Review firmware security findings, risk framing, and Sentinel Bot guidance in the FirmwareLens report workspace.">
+    <link rel="icon" href="/static/logo.png" type="image/png">
+
+    <style>
+        :root {
+            --bg: #07101f;
+            --panel: rgba(11, 19, 43, 0.9);
+            --panel-strong: rgba(10, 18, 38, 0.96);
+            --ink: #e6f4ff;
+            --muted: #94a3b8;
+            --line: rgba(148, 163, 184, 0.18);
+            --accent: #00e5ff;
+            --accent-strong: #3b82f6;
+            --highlight: #00ffa3;
+            --critical: #ff6b6b;
+            --high: #fb923c;
+            --medium: #facc15;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(0, 229, 255, 0.1), transparent 26%),
+                linear-gradient(145deg, #040814, #07101f 42%, #0d1730);
+            color: var(--ink);
+        }
+
+        .shell {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 20px 20px 50px;
+        }
+
+        .site-header,
+        .site-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 4px 24px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            background: rgba(8, 17, 33, 0.88);
+            box-shadow: 0 16px 34px rgba(0, 229, 255, 0.18);
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .brand-title { font-size: 18px; font-weight: 800; }
+        .brand-subtitle, .footer-copy { color: var(--muted); font-size: 13px; }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .header-tag,
+        .header-link {
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(11, 19, 43, 0.72);
+            border: 1px solid var(--line);
+            font-size: 13px;
+            color: var(--muted);
+            text-decoration: none;
+        }
+
+        .hero {
+            background: linear-gradient(145deg, rgba(11, 19, 43, 0.98), rgba(13, 23, 48, 0.98));
+            color: white;
+            padding: 30px;
+            border-radius: 28px;
+            border: 1px solid var(--line);
+            box-shadow: 0 28px 80px rgba(2, 6, 23, 0.4);
+            margin-bottom: 22px;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(0, 229, 255, 0.12);
+            border: 1px solid rgba(0, 229, 255, 0.16);
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #8ae9ff;
+            margin-bottom: 10px;
+        }
+
+        .hero h1 { margin: 0 0 8px; font-size: 34px; }
+        .hero p { margin: 0; max-width: 760px; color: rgba(230, 244, 255, 0.84); line-height: 1.65; }
+
+        .card {
+            background: var(--panel);
+            padding: 18px;
+            border-radius: 20px;
+            border: 1px solid var(--line);
+            box-shadow: 0 14px 32px rgba(2, 6, 23, 0.25);
+            margin-bottom: 18px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin: 20px 0 24px;
+        }
+
+        .metric-label {
+            color: var(--muted);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+
+        .metric-value { font-size: 30px; font-weight: 700; }
+        .metric-note { margin-top: 8px; color: var(--muted); font-size: 14px; }
+
+        .bot-card {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(59, 130, 246, 0.08));
+            border-color: rgba(0, 229, 255, 0.16);
+        }
+
+        .bot-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .bot-actions {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .bot-action {
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: rgba(8, 17, 33, 0.78);
+            border: 1px solid rgba(0, 229, 255, 0.12);
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 18px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            color: #04111d;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+        }
+
+        .critical { background: var(--critical); }
+        .high { background: var(--high); }
+        .medium { background: var(--medium); }
+
+        .score-bar {
+            height: 12px;
+            background: rgba(148, 163, 184, 0.14);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .score-fill { height: 100%; background: linear-gradient(90deg, var(--critical), var(--medium), var(--highlight)); }
+        .finding { border-left: 5px solid rgba(0, 229, 255, 0.32); padding-left: 14px; margin-bottom: 14px; }
+        .finding h4 { margin: 0 0 8px; }
+        .finding p { margin: 6px 0; }
+
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        input, select {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: rgba(8, 17, 33, 0.92);
+            color: var(--ink);
+            min-width: 200px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(8, 17, 33, 0.72);
+            overflow: hidden;
+            border-radius: 14px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: rgba(11, 19, 43, 0.96);
+            font-size: 13px;
+            text-transform: uppercase;
+            color: var(--muted);
+            letter-spacing: 0.05em;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        .money { white-space: nowrap; font-weight: 700; }
+
+        .launch-banner {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(0, 255, 163, 0.06));
+            border: 1px solid rgba(0, 229, 255, 0.16);
+            border-radius: 18px;
+            padding: 16px 18px;
+            margin-bottom: 18px;
+        }
+
+        a { color: var(--accent); font-weight: 600; }
+
+        @media (max-width: 900px) {
+            .two-column { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 28px; }
+        }
+    </style>
+
+    <script>
+        function filterFindings() {
+            const input = document.getElementById("search").value.toLowerCase();
+            const severity = document.getElementById("severityFilter").value;
+            const rows = document.getElementsByClassName("finding-row");
+
+            for (let i = 0; i < rows.length; i++) {
+                const text = rows[i].innerText.toLowerCase();
+                const sev = rows[i].getAttribute("data-severity");
+                const matchText = text.includes(input);
+                const matchSeverity = severity === "ALL" || severity === sev;
+                rows[i].style.display = matchText && matchSeverity ? "" : "none";
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div class="shell">
+        <header class="site-header">
+            <a class="brand" href="/">
+                <div class="logo"><img src="/static/logo.png" alt="FirmwareLens logo"></div>
+                <div>
+                    <div class="brand-title">FirmwareLens</div>
+                    <div class="brand-subtitle">Security Report</div>
+                </div>
+            </a>
+            <div class="header-actions">
+                <div class="header-tag">Signed in as {{ user.username if user else 'Guest' }}</div>
+                {% if app_mode != "api" %}
+                    <a class="header-link" href="/support?scan_id={{ result.scan_id }}">Support</a>
+                    <a class="header-link" href="/logout">Logout</a>
+                {% else %}
+                    <div class="header-tag">API preview mode</div>
+                {% endif %}
+            </div>
+        </header>
+
+        <section class="hero">
+            <span class="eyebrow">FirmwareLens Report</span>
+            <h1>Security Beyond The Source Code</h1>
+            <p>{{ result.revenue.executive_summary }}</p>
+        </section>
+
+        <section class="launch-banner">
+            <strong>Launch access included</strong><br>
+            This FirmwareLens report includes the full findings list, PDF export, and Sentinel Bot guidance in the current product workflow.
+        </section>
+
+        <section class="card bot-card">
+            <div class="bot-meta">
+                <div><strong>{{ result.ai_agent.agent_name }}</strong></div>
+                <div>Status: {{ result.ai_agent.status }}</div>
+            </div>
+            <h3>Sentinel Bot Guidance</h3>
+            <p>{{ result.ai_agent.summary }}</p>
+            <p><b>Triage stance:</b> {{ result.ai_agent.triage_stance }}</p>
+            <div class="bot-actions">
+                {% for action in result.ai_agent.priority_actions %}
+                    <div class="bot-action">{{ action }}</div>
+                {% endfor %}
+            </div>
+            <p><b>Recommended next step:</b> {{ result.ai_agent.recommended_next_step }}</p>
+        </section>
+
+        <section class="grid">
+            <div class="card">
+                <div class="metric-label">Revenue At Risk</div>
+                <div class="metric-value">${{ "{:,}".format(result.revenue.estimated_revenue_at_risk_usd) }}</div>
+                <div class="metric-note">Estimated business exposure from the current finding set.</div>
+            </div>
+            <div class="card">
+                <div class="metric-label">Revenue Protected After Fix</div>
+                <div class="metric-value">${{ "{:,}".format(result.revenue.projected_revenue_protected_usd) }}</div>
+                <div class="metric-note">Expected value retained after remediation.</div>
+            </div>
+            <div class="card">
+                <div class="metric-label">Incident Likelihood</div>
+                <div class="metric-value">{{ result.revenue.incident_likelihood_percent }}%</div>
+                <div class="metric-note">Likelihood estimate driven by current severity distribution.</div>
+            </div>
+            <div class="card">
+                <div class="metric-label">Coverage</div>
+                <div class="metric-value">{{ result.all_findings_count }}</div>
+                <div class="metric-note">FirmwareLens surfaced the full findings list for this scan.</div>
+            </div>
+        </section>
+
+        <section class="two-column">
+            <div>
+                <div class="card">
+                    <h3>Security Posture</h3>
+                    <p><b>Firmware Type:</b> {{ result.firmware_type }}</p>
+                    <p><b>Total Extracted Strings:</b> {{ result.total_strings }}</p>
+                    <p><b>Security Score:</b> {{ result.score }}/100</p>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: {{ result.score }}%;"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Top Issues</h3>
+                    {% for f in result.top_findings %}
+                        {% if f.severity == "CRITICAL" %}
+                            {% set cls = "critical" %}
+                        {% elif f.severity == "HIGH" %}
+                            {% set cls = "high" %}
+                        {% else %}
+                            {% set cls = "medium" %}
+                        {% endif %}
+                        <div class="finding">
+                            <h4>{{ f.type }} <span class="badge {{ cls }}">{{ f.severity }}</span></h4>
+                            <p><b>Evidence:</b> {{ f.value }}</p>
+                            <p><b>Technical Impact:</b> {{ f.impact }}</p>
+                            <p><b>Business Framing:</b> {{ f.revenue_impact }}</p>
+                            <p><b>Estimated Loss:</b> <span class="money">${{ "{:,}".format(f.estimated_loss_usd) }}</span></p>
+                            <p><b>Fix:</b> {{ f.recommendation }}</p>
+                            <p><b>Playbook:</b> {{ f.business_playbook }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <h3>Severity Mix</h3>
+                    <p><span class="badge critical">CRITICAL</span> {{ result.summary.critical }}</p>
+                    <p><span class="badge high">HIGH</span> {{ result.summary.high }}</p>
+                    <p><span class="badge medium">MEDIUM</span> {{ result.summary.medium }}</p>
+                </div>
+
+                <div class="card">
+                    <h3>Detection Breakdown</h3>
+                    <p><b>Secrets:</b> {{ result.breakdown.secrets }}</p>
+                    <p><b>Weak Crypto:</b> {{ result.breakdown.crypto }}</p>
+                    <p><b>Outdated Libraries:</b> {{ result.breakdown.libraries }}</p>
+                    <p><b>Suspicious Strings:</b> {{ result.breakdown.suspicious }}</p>
+                    <p><b>Bad Practices:</b> {{ result.breakdown.bad_practices }}</p>
+                </div>
+
+                <div class="card">
+                    <h3>Firmware Metadata</h3>
+                    <p><b>File Type:</b> {{ result.firmware_info.file_type }}</p>
+                    <p><b>Architecture:</b> {{ result.firmware_info.architecture or "Unknown" }}</p>
+                </div>
+
+                <div class="card">
+                    <h3>Export And Follow Up</h3>
+                    <p>Download the FirmwareLens PDF report{% if app_mode != "api" %} or move into the support workflow with Sentinel Bot for deeper triage{% else %} from the API preview and continue triage in the main web app if you need interactive support{% endif %}.</p>
+                    <a href="/download-report?scan_id={{ result.scan_id }}" data-analytics-event="report_downloaded" data-analytics-label="result_pdf">Download PDF Report</a>
+                    {% if app_mode != "api" %}
+                        <p style="margin-top:12px;"><a href="/support?scan_id={{ result.scan_id }}" data-analytics-event="support_opened" data-analytics-label="result_support">Open Support For This Scan</a></p>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h3>All Findings</h3>
+            <div class="toolbar">
+                <input type="text" id="search" onkeyup="filterFindings()" placeholder="Search findings...">
+                <select id="severityFilter" onchange="filterFindings()">
+                    <option value="ALL">All</option>
+                    <option value="CRITICAL">Critical</option>
+                    <option value="HIGH">High</option>
+                    <option value="MEDIUM">Medium</option>
+                </select>
+            </div>
+            <table>
+                <tr>
+                    <th>Type</th>
+                    <th>Severity</th>
+                    <th>Estimated Loss</th>
+                    <th>Value</th>
+                </tr>
+                {% for f in result.findings %}
+                    <tr class="finding-row" data-severity="{{ f.severity }}">
+                        <td>{{ f.type }}</td>
+                        <td>
+                            {% if f.severity == "CRITICAL" %}
+                                <span class="badge critical">CRITICAL</span>
+                            {% elif f.severity == "HIGH" %}
+                                <span class="badge high">HIGH</span>
+                            {% else %}
+                                <span class="badge medium">MEDIUM</span>
+                            {% endif %}
+                        </td>
+                        <td class="money">${{ "{:,}".format(f.estimated_loss_usd) }}</td>
+                        <td style="word-break: break-all;">{{ f.value }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </section>
+
+        <section class="card">
+            <h3>Report Notes</h3>
+            <p>FirmwareLens combines binary analysis, readable reporting, and assistant-guided follow-up so teams can move from upload to action more quickly.</p>
+            <p><b>Total findings surfaced:</b> {{ result.all_findings_count }}</p>
+            <p><b>Assistant:</b> Sentinel Bot</p>
+            <p><b>Recommended next action:</b> {{ result.ai_agent.recommended_next_step }}</p>
+        </section>
+
+        <footer class="site-footer">
+            <div class="footer-copy">FirmwareLens helps teams and students scan firmware faster, understand risk, and act with confidence.</div>
+            <div class="footer-copy">Sentinel Bot remains available for guided triage, support chat, and field issue follow-up.</div>
+        </footer>
+    </div>
+    {% include "_analytics.html" %}
+</body>
+</html>

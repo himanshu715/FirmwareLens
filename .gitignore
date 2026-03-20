@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+
+uploads/
+extracted/
+reports/
+scan_results/
+data/
