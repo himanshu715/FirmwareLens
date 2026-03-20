@@ -315,6 +315,9 @@
         <section class="launch-banner">
             <strong>Launch access included</strong><br>
             This FirmwareLens report includes the full findings list, PDF export, and Sentinel Bot guidance in the current product workflow.
+            {% if deployment_notice %}
+                <p style="margin:12px 0 0;"><strong>Preview runtime:</strong> {{ deployment_notice }}</p>
+            {% endif %}
         </section>
 
         <section class="card bot-card">

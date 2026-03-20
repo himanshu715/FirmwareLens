@@ -124,6 +124,7 @@ Key deployment notes:
 - `/robots.txt` and `/sitemap.xml` are now built in for discovery.
 - `/ads.txt` is available when `ADS_TXT_CONTENT` is configured.
 - CSP now allows GA4 correctly when `GA_MEASUREMENT_ID` is set.
+- Vercel now falls back to `/tmp/firmwarelens` so the app can boot in serverless preview mode, but full production scans still belong on a persistent host like Render.
 
 ## Analytics And Global Popularity Tracking
 
@@ -157,3 +158,4 @@ For the full analytics plan and global traction dashboard, see [ANALYTICS_SETUP.
 - Reports are keyed by `scan_id`, not shared global state.
 - Flask authentication is now backed by stored users with hashed passwords.
 - For stronger production security, set `FLASK_SECRET_KEY`, `COOKIE_SECURE=1`, and `SITE_URL` in the environment instead of relying on the development fallback values.
+- On Vercel, local storage is temporary and upload limits are smaller, so that deployment mode should be treated as a preview rather than the full production workflow.

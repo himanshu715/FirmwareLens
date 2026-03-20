@@ -4,7 +4,15 @@ from pathlib import Path
 
 from werkzeug.utils import secure_filename
 
-from config import ALLOWED_EXTENSIONS, MAX_UPLOAD_SIZE, REPORTS_DIR, RESULTS_DIR, UPLOAD_DIR, ensure_runtime_dirs
+from config import (
+    ALLOWED_EXTENSIONS,
+    MAX_UPLOAD_SIZE,
+    MAX_UPLOAD_SIZE_MB,
+    REPORTS_DIR,
+    RESULTS_DIR,
+    UPLOAD_DIR,
+    ensure_runtime_dirs,
+)
 
 
 ensure_runtime_dirs()
@@ -34,7 +42,7 @@ def validate_upload(filename, size):
         raise ScanStorageError("Unsupported firmware format.")
 
     if size > MAX_UPLOAD_SIZE:
-        raise ScanStorageError("File too large.")
+        raise ScanStorageError(f"File too large. Maximum allowed size is {MAX_UPLOAD_SIZE_MB}MB.")
 
 
 def build_upload_path(scan_id, original_filename):

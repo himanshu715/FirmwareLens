@@ -2,6 +2,16 @@
 
 This project can be launched quickly on Render, then placed behind Cloudflare for global delivery and DNS control.
 
+## Quick Note On Vercel
+
+FirmwareLens can now boot on Vercel in a lightweight preview mode by using `/tmp/firmwarelens` automatically when `VERCEL` is present, but Vercel serverless is still not the best production fit for this app because:
+
+- storage is temporary
+- uploads are more constrained
+- scan history and generated reports are less reliable across invocations
+
+Use Render or another persistent host for the full product workflow.
+
 ## 1. Prepare The Repo
 
 - Keep [requirements.txt](/C:/Users/Himan/Downloads/firmware-security-analyzer/requirements.txt) up to date.

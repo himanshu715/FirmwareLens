@@ -9,7 +9,10 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from api.pdf_report import generate_pdf
 from config import (
     ADS_TXT_CONTENT,
+    DEPLOYMENT_NOTICE,
+    IS_VERCEL,
     MAX_UPLOAD_SIZE,
+    MAX_UPLOAD_SIZE_MB,
     PREFERRED_URL_SCHEME,
     build_content_security_policy,
     ensure_runtime_dirs,
@@ -55,7 +58,7 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["PREFERRED_URL_SCHEME"] = PREFERRED_URL_SCHEME
 app.config["SESSION_COOKIE_SECURE"] = os.getenv(
     "COOKIE_SECURE",
-    "1" if PREFERRED_URL_SCHEME == "https" else "0",
+    "1" if PREFERRED_URL_SCHEME == "https" or IS_VERCEL else "0",
 ) == "1"
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "firmwarelens-dev-secret")
 GA_MEASUREMENT_ID = os.getenv("GA_MEASUREMENT_ID", "").strip()
@@ -163,7 +166,10 @@ def load_scan_for_user(scan_id, user):
 
         result = load_result(normalized_scan_id)
         if not result:
-            return None, "This scan report is no longer available."
+            message = "This scan report is no longer available."
+            if IS_VERCEL:
+                message += " Vercel preview storage is temporary, so older scans may disappear between invocations."
+            return None, message
 
         return result, None
 
@@ -176,7 +182,10 @@ def load_scan_for_user(scan_id, user):
 
     result = load_result(normalized_scan_id)
     if not result:
-        return None, "This scan report is no longer available."
+        message = "This scan report is no longer available."
+        if IS_VERCEL:
+            message += " Vercel preview storage is temporary, so older scans may disappear between invocations."
+        return None, message
 
     return result, None
 
@@ -220,6 +229,10 @@ def inject_template_globals():
         "csrf_token": get_csrf_token(),
         "ga_measurement_id": GA_MEASUREMENT_ID,
         "site_origin": public_origin(request),
+        "max_upload_size_mb": MAX_UPLOAD_SIZE_MB,
+        "max_upload_size_bytes": MAX_UPLOAD_SIZE,
+        "deployment_notice": DEPLOYMENT_NOTICE,
+        "is_vercel": IS_VERCEL,
     }
 
 
@@ -443,7 +456,11 @@ def field_report():
 
 @app.route("/health")
 def health():
-    return {"status": "ok", "app": "firmwarelens"}
+    return {
+        "status": "ok",
+        "app": "firmwarelens",
+        "runtime": "vercel-preview" if IS_VERCEL else "standard",
+    }
 
 
 @app.route("/robots.txt")
@@ -586,8 +603,8 @@ def forbidden(error):
 def file_too_large(_error):
     user = current_user()
     if user:
-        return render_home(user=user, error="File too large."), 413
-    return render_home(auth_mode="login", auth_error="File too large."), 413
+        return render_home(user=user, error=f"File too large. Maximum allowed size is {MAX_UPLOAD_SIZE_MB}MB."), 413
+    return render_home(auth_mode="login", auth_error=f"File too large. Maximum allowed size is {MAX_UPLOAD_SIZE_MB}MB."), 413
 
 
 @app.errorhandler(500)

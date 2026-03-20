@@ -294,6 +294,17 @@
             line-height: 1.6;
         }
 
+        .deployment-note {
+            margin-bottom: 16px;
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(250, 204, 21, 0.24);
+            background: linear-gradient(135deg, rgba(250, 204, 21, 0.12), rgba(251, 146, 60, 0.08));
+            color: #fef3c7;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
         .auth-panel {
             padding: 16px;
             border-radius: 18px;
@@ -407,7 +418,7 @@
             if (!file) return;
 
             const allowed = [".bin", ".img", ".fw", ".hex", ".elf"];
-            const maxSize = 50 * 1024 * 1024;
+            const maxSize = {{ max_upload_size_bytes|int }};
             const validExt = allowed.some(ext => file.name.toLowerCase().endsWith(ext));
 
             if (!validExt) {
@@ -415,7 +426,7 @@
                 return;
             }
             if (file.size > maxSize) {
-                error.innerText = "File too large (Max 50MB)";
+                error.innerText = "File too large (Max {{ max_upload_size_mb }}MB)";
                 return;
             }
 
@@ -501,6 +512,12 @@
                     <h2>Upload Firmware</h2>
                     <div class="subtitle">Start a FirmwareLens scan and get a complete report with evidence, severity, business framing, and Sentinel Bot support.</div>
 
+                    {% if deployment_notice %}
+                        <div class="deployment-note">
+                            <strong>Deployment notice.</strong> {{ deployment_notice }}
+                        </div>
+                    {% endif %}
+
                     {% if user.guest %}
                         <div class="guest-note">
                             <strong>Guest session active.</strong> You can scan firmware and view reports right away. Scan access stays tied to this browser session, while saved support history and feedback still require an account.
@@ -531,12 +548,18 @@
                         </div>
 
                         <div class="formats">
-                            Supported: .bin, .img, .fw, .hex, .elf | Max size: 50MB | Full report and PDF included
+                            Supported: .bin, .img, .fw, .hex, .elf | Max size: {{ max_upload_size_mb }}MB | Full report and PDF included
                         </div>
                     </form>
                 {% else %}
                     <h2>Sign In To Start</h2>
                     <div class="subtitle">Access is now built directly into the home page. Sign in or create your account here, then the same page becomes your scan workspace.</div>
+
+                    {% if deployment_notice %}
+                        <div class="deployment-note">
+                            <strong>Deployment notice.</strong> {{ deployment_notice }}
+                        </div>
+                    {% endif %}
 
                     <div class="auth-switch">
                         <a class="auth-pill {% if auth_mode == 'login' %}active{% endif %}" href="/?auth=login#access">Login</a>

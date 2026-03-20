@@ -237,6 +237,13 @@
             <p>FirmwareLens keeps your scan follow-up in one place. Ask Sentinel Bot about findings, report issues from the field when a debugger is unavailable, and collect product feedback without leaving the workflow.</p>
         </section>
 
+        {% if deployment_notice %}
+            <div class="card" style="margin-bottom:18px; border-color: rgba(250, 204, 21, 0.24); background: linear-gradient(135deg, rgba(250, 204, 21, 0.12), rgba(251, 146, 60, 0.08));">
+                <strong>Deployment notice</strong>
+                <p style="margin-bottom:0;">{{ deployment_notice }}</p>
+            </div>
+        {% endif %}
+
         {% if success %}
             <div class="success">{{ success }}</div>
         {% endif %}

@@ -7,7 +7,13 @@ from fastapi.templating import Jinja2Templates
 
 from api.pdf_report import generate_pdf
 from api.upload_api import router as upload_router
-from config import BASE_DIR, build_content_security_policy, ensure_runtime_dirs
+from config import (
+    BASE_DIR,
+    DEPLOYMENT_NOTICE,
+    IS_VERCEL,
+    build_content_security_policy,
+    ensure_runtime_dirs,
+)
 from engine.analyzer import analyze_firmware
 from services.app_db import init_db, save_scan_record
 from services.scan_store import (
@@ -56,7 +62,11 @@ async def add_security_headers(request: Request, call_next):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "app": "firmwarelens-api"}
+    return {
+        "status": "ok",
+        "app": "firmwarelens-api",
+        "runtime": "vercel-preview" if IS_VERCEL else "standard",
+    }
 
 
 @app.post("/analyze")
@@ -87,6 +97,8 @@ async def analyze(request: Request, firmware: UploadFile = File(...), x_api_key:
             "app_mode": "api",
             "ga_measurement_id": GA_MEASUREMENT_ID,
             "analytics_events": [],
+            "deployment_notice": DEPLOYMENT_NOTICE,
+            "is_vercel": IS_VERCEL,
         },
     )
 
