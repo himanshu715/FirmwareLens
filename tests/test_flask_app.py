@@ -96,6 +96,7 @@ def test_home_renders_login_panel_for_guests(tmp_path, monkeypatch):
     assert response.status_code == 200
     assert b"Sign In To Start" in response.data
     assert b"Sign In To FirmwareLens" in response.data
+    assert b"Firmware Security Scanner for IoT and Embedded Teams" in response.data
 
 
 def test_support_renders_for_guest_session(tmp_path, monkeypatch):

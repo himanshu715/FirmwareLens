@@ -229,10 +229,6 @@ def render_home(**context):
         context.pop("analytics_event", None),
         context.pop("analytics_params", None),
     )
-
-
-def should_noindex_path(path):
-    return path in NOINDEX_EXACT_PATHS or any(path.startswith(prefix) for prefix in NOINDEX_PREFIX_PATHS)
     return render_template(
         "index.html",
         user=user,
@@ -240,6 +236,10 @@ def should_noindex_path(path):
         analytics_events=analytics_events,
         **context,
     )
+
+
+def should_noindex_path(path):
+    return path in NOINDEX_EXACT_PATHS or any(path.startswith(prefix) for prefix in NOINDEX_PREFIX_PATHS)
 
 
 @app.context_processor
