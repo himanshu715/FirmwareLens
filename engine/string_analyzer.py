@@ -3,6 +3,9 @@ import shutil
 import subprocess
 
 
+SENSITIVE_KEYWORDS = ("password", "key", "token", "secret")
+
+
 def extract_strings(file_path):
     if shutil.which("strings") is None:
         return []
@@ -22,11 +25,6 @@ def extract_strings(file_path):
 
     return result.stdout.splitlines()
 
-
-def is_valid_string(value):
-    return len(value) > 6 and any(char.isalpha() for char in value) and value.isprintable()
-
-
 def detect_firmware_type(strings):
     if len(strings) < 50:
         return "Likely Encrypted / Packed Firmware"
@@ -36,27 +34,28 @@ def detect_firmware_type(strings):
 
 
 def extract_strings_from_directory(directory):
-    all_strings = []
+    unique_strings = set()
 
     for root, _dirs, files in os.walk(directory):
         for file_name in files:
             file_path = os.path.join(root, file_name)
-            strings = extract_strings(file_path)
-            for value in strings:
-                if is_valid_string(value) or len(value) > 4:
-                    all_strings.append(value)
+            for value in extract_strings(file_path):
+                if _should_keep_extracted_string(value):
+                    unique_strings.add(value)
 
-    return list(set(all_strings))
+    return list(unique_strings)
 
 
 def find_sensitive_keywords(strings):
-    keywords = ["password", "key", "token", "secret"]
     findings = []
 
     for value in strings:
-        for keyword in keywords:
-            if keyword in value.lower():
-                findings.append(value)
-                break
+        lowered = value.lower()
+        if any(keyword in lowered for keyword in SENSITIVE_KEYWORDS):
+            findings.append(value)
 
     return findings
+
+
+def _should_keep_extracted_string(value):
+    return len(value) > 4 and value.isprintable()

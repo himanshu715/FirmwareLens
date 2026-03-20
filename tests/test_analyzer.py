@@ -56,8 +56,7 @@ def test_analyze_firmware_deduplicates_same_type_and_value(monkeypatch):
         },
     ]
 
-    monkeypatch.setattr(analyzer, "detect_secrets", lambda _: duplicate_findings)
-    monkeypatch.setattr(analyzer, "detect_advanced_secrets", lambda _: [])
+    monkeypatch.setattr(analyzer, "detect_all_findings", lambda _: duplicate_findings)
 
     result = analyzer.analyze_firmware("fake.bin")
 
@@ -71,7 +70,7 @@ def test_full_free_scan_exposes_all_findings(monkeypatch):
     monkeypatch.setattr(analyzer, "extract_strings", lambda _: ["password=admin123"])
     monkeypatch.setattr(
         analyzer,
-        "detect_secrets",
+        "detect_all_findings",
         lambda _: [
             {
                 "type": "Hardcoded Password",
@@ -84,7 +83,6 @@ def test_full_free_scan_exposes_all_findings(monkeypatch):
             for i in range(8)
         ],
     )
-    monkeypatch.setattr(analyzer, "detect_advanced_secrets", lambda _: [])
 
     result = analyzer.analyze_firmware("fake.bin")
 
@@ -98,10 +96,9 @@ def test_breakdown_counts_detection_families(monkeypatch):
     monkeypatch.setattr(analyzer, "get_firmware_info", lambda _: {"file_type": "BIN", "architecture": "ARM"})
     monkeypatch.setattr(analyzer, "extract_firmware", lambda _: None)
     monkeypatch.setattr(analyzer, "extract_strings", lambda _: ["dummy"])
-    monkeypatch.setattr(analyzer, "detect_secrets", lambda _: [])
     monkeypatch.setattr(
         analyzer,
-        "detect_advanced_secrets",
+        "detect_all_findings",
         lambda _: [
             {
                 "type": "Outdated Library",

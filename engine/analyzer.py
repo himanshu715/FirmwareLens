@@ -2,7 +2,7 @@ from engine.ai_agent import build_ai_agent_support
 from engine.extractor import extract_firmware
 from engine.file_detector import get_firmware_info
 from engine.revenue_model import build_revenue_summary, enrich_findings_with_revenue
-from engine.secret_detector import detect_advanced_secrets, detect_secrets
+from engine.secret_detector import detect_all_findings
 from engine.string_analyzer import (
     detect_firmware_type,
     extract_strings,
@@ -44,12 +44,22 @@ FREE_TIER = {
     "depth": "Full scan",
 }
 
+SECRET_FINDING_TYPES = frozenset(
+    {
+        "Hardcoded Password",
+        "API Key",
+        "JWT Token",
+        "AWS Access Key",
+        "Private Key",
+        "Possible API Key",
+        "Encoded Secret",
+        "Credential Leak in URL",
+    }
+)
+
 
 def calculate_score(findings):
-    score = 100
-    for finding in findings:
-        score -= SCORE_PENALTIES.get(finding["type"], 3)
-    return max(score, 0)
+    return max(100 - sum(SCORE_PENALTIES.get(finding["type"], 3) for finding in findings), 0)
 
 
 def analyze_firmware(file_path, scan_tier="free"):
@@ -64,9 +74,7 @@ def analyze_firmware(file_path, scan_tier="free"):
     firmware_type = detect_firmware_type(strings)
     sensitive = find_sensitive_keywords(strings)
 
-    basic_findings = detect_secrets(strings)
-    advanced_findings = detect_advanced_secrets(strings)
-    all_findings = _deduplicate_findings(basic_findings + advanced_findings)
+    all_findings = _deduplicate_findings(detect_all_findings(strings))
     all_findings = enrich_findings_with_revenue(all_findings, firmware_type)
     all_findings = sorted(
         all_findings,
@@ -77,11 +85,7 @@ def analyze_firmware(file_path, scan_tier="free"):
         reverse=True,
     )
 
-    summary = {
-        "critical": sum(1 for finding in all_findings if finding["severity"] == "CRITICAL"),
-        "high": sum(1 for finding in all_findings if finding["severity"] == "HIGH"),
-        "medium": sum(1 for finding in all_findings if finding["severity"] == "MEDIUM"),
-    }
+    summary, breakdown = _build_summary_and_breakdown(all_findings)
 
     result = {
         "firmware_type": firmware_type,
@@ -94,7 +98,7 @@ def analyze_firmware(file_path, scan_tier="free"):
         "sensitive_strings": sensitive[:20],
         "score": calculate_score(all_findings),
         "revenue": build_revenue_summary(all_findings, firmware_type),
-        "breakdown": _build_breakdown(all_findings),
+        "breakdown": breakdown,
         "issues": [],
         "scan_tier": "free",
         "tier": FREE_TIER,
@@ -107,7 +111,7 @@ def analyze_firmware(file_path, scan_tier="free"):
 
 
 def _deduplicate_findings(findings):
-    unique = []
+    unique_findings = []
     seen = set()
 
     for finding in findings:
@@ -115,12 +119,17 @@ def _deduplicate_findings(findings):
         if identity in seen:
             continue
         seen.add(identity)
-        unique.append(finding)
+        unique_findings.append(finding)
 
-    return unique
+    return unique_findings
 
 
-def _build_breakdown(findings):
+def _build_summary_and_breakdown(findings):
+    summary = {
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+    }
     buckets = {
         "secrets": 0,
         "crypto": 0,
@@ -131,16 +140,16 @@ def _build_breakdown(findings):
 
     for finding in findings:
         finding_type = finding.get("type", "")
-        if finding_type in {
-            "Hardcoded Password",
-            "API Key",
-            "JWT Token",
-            "AWS Access Key",
-            "Private Key",
-            "Possible API Key",
-            "Encoded Secret",
-            "Credential Leak in URL",
-        }:
+        severity = finding.get("severity")
+
+        if severity == "CRITICAL":
+            summary["critical"] += 1
+        elif severity == "HIGH":
+            summary["high"] += 1
+        elif severity == "MEDIUM":
+            summary["medium"] += 1
+
+        if finding_type in SECRET_FINDING_TYPES:
             buckets["secrets"] += 1
         elif finding_type.startswith("Weak Crypto"):
             buckets["crypto"] += 1
@@ -151,4 +160,4 @@ def _build_breakdown(findings):
         elif finding_type == "Bad Practice":
             buckets["bad_practices"] += 1
 
-    return buckets
+    return summary, buckets
