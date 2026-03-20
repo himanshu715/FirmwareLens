@@ -53,6 +53,7 @@ async def add_security_headers(request: Request, call_next):
         enable_analytics=bool(GA_MEASUREMENT_ID)
     )
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
     if request.url.path.startswith("/static/"):
         response.headers["Cache-Control"] = "public, max-age=604800, immutable"
     else:

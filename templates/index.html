@@ -3,15 +3,79 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>FirmwareLens | Firmware Security Made Simple</title>
-    <meta name="description" content="FirmwareLens helps developers, students, and IoT teams upload firmware, detect risks, and get readable security reports with Sentinel Bot guidance.">
+    <title>FirmwareLens | Firmware Security Scanner for IoT and Embedded Teams</title>
+    <meta name="description" content="FirmwareLens is a firmware security scanner for IoT, embedded, and product teams. Upload firmware, detect secrets and weak crypto, and get readable reports with Sentinel Bot guidance.">
     <meta name="robots" content="index,follow">
-    <meta property="og:title" content="FirmwareLens | Firmware Security Made Simple">
-    <meta property="og:description" content="Upload firmware, detect secrets and weak patterns, and get a clear report with Sentinel Bot support.">
+    <meta name="theme-color" content="#07101f">
+    <meta property="og:title" content="FirmwareLens | Firmware Security Scanner for IoT and Embedded Teams">
+    <meta property="og:description" content="Upload firmware, detect secrets, weak crypto, suspicious strings, and risky patterns, then get a readable security report with Sentinel Bot support.">
     <meta property="og:type" content="website">
+    <meta property="og:site_name" content="FirmwareLens">
     <meta property="og:url" content="{{ site_origin }}/">
+    <meta property="og:image" content="{{ site_origin }}/static/logo.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FirmwareLens | Firmware Security Scanner for IoT and Embedded Teams">
+    <meta name="twitter:description" content="Firmware security made simple for developers, students, and IoT teams.">
+    <meta name="twitter:image" content="{{ site_origin }}/static/logo.png">
     <link rel="canonical" href="{{ site_origin }}/">
     <link rel="icon" href="/static/logo.png" type="image/png">
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "FirmwareLens",
+            "applicationCategory": "SecurityApplication",
+            "operatingSystem": "Web",
+            "url": "{{ site_origin }}/",
+            "image": "{{ site_origin }}/static/logo.png",
+            "description": "FirmwareLens scans uploaded firmware for secrets, weak crypto, suspicious strings, outdated components, and risky implementation patterns.",
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+            }
+        }
+    </script>
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+                {
+                    "@type": "Question",
+                    "name": "Can FirmwareLens scan firmware without source code?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Yes. FirmwareLens is designed for binary-first firmware analysis, so teams can upload firmware images directly and review findings even when source code is unavailable."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "What security issues does FirmwareLens detect?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "FirmwareLens checks for hardcoded secrets, weak cryptography, suspicious strings, outdated libraries, and risky implementation patterns, then organizes those findings into a readable report."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Who is FirmwareLens for?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "FirmwareLens is aimed at IoT teams, embedded developers, security researchers, students, and support teams that need faster firmware visibility without a heavy reverse-engineering setup."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Can Sentinel Bot help with field failures?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Yes. Sentinel Bot can answer scan questions, help interpret findings, and generate field issue guidance when a debugger is not available."
+                    }
+                }
+            ]
+        }
+    </script>
 
     <style>
         :root {
@@ -353,6 +417,7 @@
         }
 
         .section-card { padding: 24px; }
+        .section-card h2,
         .section-card h3 { margin-top: 0; margin-bottom: 14px; font-size: 24px; }
         .feature-list, .reason-list { display: grid; gap: 12px; }
         .item, .bot-card { padding: 16px; }
@@ -396,6 +461,29 @@
             border-radius: 18px;
             background: linear-gradient(135deg, rgba(0, 229, 255, 0.1), rgba(0, 255, 163, 0.06));
             border: 1px solid rgba(0, 229, 255, 0.16);
+        }
+
+        .faq-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .faq-item {
+            padding: 18px;
+            border-radius: 18px;
+            background: rgba(8, 17, 33, 0.76);
+            border: 1px solid var(--line);
+        }
+
+        .faq-item h3 {
+            margin: 0 0 8px;
+            font-size: 18px;
+        }
+
+        .faq-item p {
+            margin: 0;
+            color: #c8d9ea;
+            line-height: 1.7;
         }
 
         @media (max-width: 940px) {
@@ -628,9 +716,9 @@
             </div>
         </section>
 
-        <section class="sections">
+        <section class="sections" id="features">
             <div class="panel section-card">
-                <h3>Core Detection</h3>
+                <h2>Core Detection</h2>
                 <div class="feature-list">
                     <div class="item"><strong>Binary Analysis</strong> Scan firmware without source code and inspect evidence that would otherwise stay buried inside the image.</div>
                     <div class="item"><strong>Vulnerability Signals</strong> Identify weak patterns, unsafe behavior markers, outdated components, and risky implementation choices.</div>
@@ -640,7 +728,7 @@
             </div>
 
             <div class="panel section-card">
-                <h3>Sentinel Bot</h3>
+                <h2>Sentinel Bot</h2>
                 <div class="reason-list">
                     <div class="bot-card">
                         <strong>Guided triage</strong>
@@ -664,7 +752,7 @@
 
         <section class="sections">
             <div class="panel section-card">
-                <h3>Why Teams Choose FirmwareLens</h3>
+                <h2>Why Teams Choose FirmwareLens</h2>
                 <div class="feature-list">
                     <div class="item"><strong>No hardware required</strong> Get useful security signals directly from uploaded firmware images.</div>
                     <div class="item"><strong>No complex setup</strong> Avoid stitching together a manual toolchain just to start triage.</div>
@@ -672,8 +760,8 @@
                 </div>
             </div>
 
-            <div class="panel section-card">
-                <h3>How It Works</h3>
+            <div class="panel section-card" id="how-it-works">
+                <h2>How It Works</h2>
                 <div class="feature-list">
                     <div class="item"><strong>1. Upload firmware</strong> Send a `.bin`, `.img`, `.fw`, `.hex`, or `.elf` file into FirmwareLens.</div>
                     <div class="item"><strong>2. Automated scan runs</strong> The engine checks for secrets, crypto issues, suspicious strings, libraries, and bad practices.</div>
@@ -684,7 +772,7 @@
         </section>
 
         <section class="panel section-card full-width-section">
-            <h3>Where FirmwareLens Fits</h3>
+            <h2>Where FirmwareLens Fits</h2>
             <div class="subtitle">Few firmware security tools offer a simple self-serve SaaS workflow. Most existing options are either enterprise-heavy, deeply technical, or research-oriented.</div>
 
             <div class="compare-grid">
@@ -726,7 +814,7 @@
 
         <section class="sections">
             <div class="panel section-card">
-                <h3>Who It Fits Best</h3>
+                <h2>Who It Fits Best</h2>
                 <ul class="advantage-list">
                     <li>Students learning firmware and embedded security.</li>
                     <li>IoT teams doing quick release-risk checks.</li>
@@ -736,13 +824,35 @@
             </div>
 
             <div class="panel section-card">
-                <h3>Launch Promise</h3>
+                <h2>Launch Promise</h2>
                 <ul class="advantage-list">
                     <li>Upload firmware and start scanning immediately.</li>
                     <li>Get a clear report instead of raw tool output alone.</li>
                     <li>Use Sentinel Bot when you need explanation, triage, or field guidance.</li>
                     <li>Export results cleanly for internal review or release decisions.</li>
                 </ul>
+            </div>
+        </section>
+
+        <section class="panel section-card full-width-section" id="faq">
+            <h2>Frequently Asked Questions</h2>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <h3>Can FirmwareLens scan firmware without source code?</h3>
+                    <p>Yes. FirmwareLens is built for binary-first analysis, so you can upload firmware images directly and still get findings, report summaries, and follow-up guidance.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>What issues does FirmwareLens detect?</h3>
+                    <p>FirmwareLens looks for hardcoded secrets, weak cryptography, suspicious strings, outdated libraries, and risky implementation patterns that deserve engineering review before release.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Who should use FirmwareLens?</h3>
+                    <p>The product is a good fit for IoT teams, embedded developers, students, researchers, and field-support groups that need a simpler firmware security workflow.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Can Sentinel Bot help when a debugger is unavailable?</h3>
+                    <p>Yes. Sentinel Bot is designed to answer scan questions, guide triage, and generate field issue investigation steps when teams only have symptoms, logs, and device context.</p>
+                </div>
             </div>
         </section>
 

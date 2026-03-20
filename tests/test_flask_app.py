@@ -133,6 +133,8 @@ def test_robots_txt_exposes_sitemap(tmp_path, monkeypatch):
     assert response.status_code == 200
     assert b"User-agent: *" in response.data
     assert b"Sitemap:" in response.data
+    assert b"Disallow: /support" in response.data
+    assert b"Disallow: /download-report" in response.data
 
 
 def test_ads_txt_returns_404_when_not_configured(tmp_path, monkeypatch):
@@ -148,3 +150,23 @@ def test_ads_txt_returns_404_when_not_configured(tmp_path, monkeypatch):
         response = client.get("/ads.txt")
 
     assert response.status_code == 404
+
+
+def test_support_sets_noindex_header(tmp_path, monkeypatch):
+    test_db = tmp_path / "sentinel.db"
+    monkeypatch.setattr(app_db, "DB_PATH", test_db)
+    app_db.init_db()
+    user = app_db.create_user("seo-user", "secret123")
+
+    from app import app
+
+    app.config["TESTING"] = True
+
+    with app.test_client() as client:
+        with client.session_transaction() as session:
+            session["user"] = user
+
+        response = client.get("/support")
+
+    assert response.status_code == 200
+    assert response.headers["X-Robots-Tag"] == "noindex, nofollow, noarchive"

@@ -64,6 +64,21 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "firmwarelens-dev-secret")
 GA_MEASUREMENT_ID = os.getenv("GA_MEASUREMENT_ID", "").strip()
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 
+NOINDEX_EXACT_PATHS = {
+    "/support",
+    "/login",
+    "/register",
+    "/logout",
+    "/guest-login",
+    "/analyze",
+    "/download-report",
+    "/bot-chat",
+    "/feedback",
+    "/field-report",
+    "/health",
+}
+NOINDEX_PREFIX_PATHS = ("/analyze-json/", "/upload")
+
 
 def is_guest_user(user=None):
     active_user = user or current_user()
@@ -214,6 +229,10 @@ def render_home(**context):
         context.pop("analytics_event", None),
         context.pop("analytics_params", None),
     )
+
+
+def should_noindex_path(path):
+    return path in NOINDEX_EXACT_PATHS or any(path.startswith(prefix) for prefix in NOINDEX_PREFIX_PATHS)
     return render_template(
         "index.html",
         user=user,
@@ -469,6 +488,19 @@ def robots_txt():
     lines = [
         "User-agent: *",
         "Allow: /",
+        "Disallow: /support",
+        "Disallow: /login",
+        "Disallow: /register",
+        "Disallow: /logout",
+        "Disallow: /guest-login",
+        "Disallow: /analyze",
+        "Disallow: /download-report",
+        "Disallow: /bot-chat",
+        "Disallow: /feedback",
+        "Disallow: /field-report",
+        "Disallow: /health",
+        "Disallow: /upload",
+        "Disallow: /analyze-json/",
     ]
     if origin:
         lines.append(f"Sitemap: {origin}/sitemap.xml")
@@ -569,6 +601,8 @@ def add_security_headers(response):
         enable_analytics=bool(GA_MEASUREMENT_ID)
     )
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    if should_noindex_path(request.path):
+        response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
     if request.path.startswith("/static/"):
         response.headers["Cache-Control"] = "public, max-age=604800, immutable"
     elif request.path in {"/robots.txt", "/sitemap.xml", "/ads.txt"}:
