@@ -23,6 +23,7 @@ Use Render or another persistent host for the full product workflow.
 The included [render.yaml](/C:/Users/Himan/Downloads/firmware-security-analyzer/render.yaml) assumes:
 
 - `gunicorn app:app` for production serving
+- `uvicorn main:app --host 0.0.0.0 --port $PORT` as a compatibility fallback if your platform is preconfigured for ASGI
 - `/health` as the health check path
 - a persistent disk mounted at `/var/data`
 - `RUNTIME_ROOT=/var/data/firmwarelens` so uploads, reports, scan results, and the SQLite database live on persistent storage

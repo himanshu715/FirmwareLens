@@ -42,6 +42,7 @@ FirmwareLens is a firmware analysis web app that scans uploaded firmware, genera
 ## Key Files
 
 - [app.py](/C:/Users/Himan/Downloads/firmware-security-analyzer/app.py): Flask app, FirmwareLens login flow, support routes
+- [main.py](/C:/Users/Himan/Downloads/firmware-security-analyzer/main.py): ASGI shim for platforms using `uvicorn main:app`
 - [api/main.py](/C:/Users/Himan/Downloads/firmware-security-analyzer/api/main.py): FastAPI endpoints
 - [engine/analyzer.py](/C:/Users/Himan/Downloads/firmware-security-analyzer/engine/analyzer.py): core scan pipeline
 - [engine/ai_agent.py](/C:/Users/Himan/Downloads/firmware-security-analyzer/engine/ai_agent.py): report bot summary builder
@@ -77,10 +78,16 @@ The home page now includes:
 - guest access
 - the firmware upload workspace after sign-in
 
+If a platform expects an ASGI entrypoint, you can also serve the same Flask UI with:
+
+```powershell
+uvicorn main:app --host 0.0.0.0 --port 5000
+```
+
 ### FastAPI
 
 ```powershell
-.\venv\bin\uvicorn api.main:app --reload
+uvicorn api.main:app --reload
 ```
 
 Useful endpoints:
