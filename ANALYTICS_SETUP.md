@@ -2,7 +2,30 @@
 
 Use this guide to understand how popular FirmwareLens is across countries, not just how many visits it gets.
 
-## 1. Set Up GA4
+## 1. Analytics Setup
+
+### Vercel Web Analytics (Recommended for Vercel Deployments)
+
+FirmwareLens now includes Vercel Web Analytics support out of the box. When deployed to Vercel:
+
+1. Navigate to your project dashboard on Vercel
+2. Go to the Analytics tab in the sidebar
+3. Click "Enable Web Analytics"
+4. Deploy your application
+
+No additional configuration is needed - the Vercel Analytics script is automatically included in all pages via `templates/_analytics.html`. It will collect:
+
+- Page views and visitor counts
+- Traffic sources and referrers
+- Geographic data (country/region)
+- Device and browser information
+- Page performance metrics
+
+View your analytics data in the Vercel dashboard under Analytics. This provides real-time, privacy-friendly insights without requiring cookies or additional environment variables.
+
+### Google Analytics 4 (Optional)
+
+For more detailed event tracking and custom reports, you can also enable Google Analytics 4 alongside Vercel Analytics.
 
 Create a Google Analytics 4 property and set the environment variable:
 
