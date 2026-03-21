@@ -95,7 +95,10 @@ Useful endpoints:
 - `GET /health`
 - `POST /upload`
 - `POST /analyze`
+- `POST /analyze-json`
 - `GET /analyze-json/{scan_id}`
+- `POST /public/analyze`
+- `GET /public/download-report?scan_id=...`
 - `GET /download-report?scan_id=...`
 
 ## Running Tests
@@ -128,9 +131,12 @@ FirmwareLens now includes production launch files:
 Key deployment notes:
 
 - `RUNTIME_ROOT` lets you move uploads, reports, scan results, and SQLite onto persistent storage.
+- `BACKEND_PUBLIC_URL` lets the Vercel frontend post firmware directly to the Render backend, which avoids Vercel upload/runtime limits.
+- `FRONTEND_PUBLIC_URL` lets the backend emit the right CORS headers for browser-side API calls from the frontend deployment.
+- `PUBLIC_SCAN_MAX_UPLOAD_SIZE_BYTES` lets the frontend show the backend upload limit instead of the local preview limit.
 - `/robots.txt` and `/sitemap.xml` are now built in for discovery.
 - `/ads.txt` is available when `ADS_TXT_CONTENT` is configured.
-- CSP now allows GA4 correctly when `GA_MEASUREMENT_ID` is set.
+- CSP now allows GA4 correctly when `GA_MEASUREMENT_ID` is set, and also permits direct form posts to the configured backend.
 - Vercel now falls back to `/tmp/firmwarelens` so the app can boot in serverless preview mode, but full production scans still belong on a persistent host like Render.
 
 ## Analytics And Global Popularity Tracking

@@ -290,7 +290,7 @@
 <body>
     <div class="shell">
         <header class="site-header">
-            <a class="brand" href="/">
+            <a class="brand" href="{{ home_url or '/' }}">
                 <div class="logo"><img src="/static/logo.png" alt="FirmwareLens logo"></div>
                 <div>
                     <div class="brand-title">FirmwareLens</div>
@@ -299,9 +299,11 @@
             </a>
             <div class="header-actions">
                 <div class="header-tag">Signed in as {{ user.username if user else 'Guest' }}</div>
-                {% if app_mode != "api" %}
-                    <a class="header-link" href="/support?scan_id={{ result.scan_id }}">Support</a>
+                {% if app_mode == "ui" %}
+                    <a class="header-link" href="{{ support_url or ('/support?scan_id=' ~ result.scan_id) }}">Support</a>
                     <a class="header-link" href="/logout">Logout</a>
+                {% elif app_mode == "public" %}
+                    <div class="header-tag">Public scan mode</div>
                 {% else %}
                     <div class="header-tag">API preview mode</div>
                 {% endif %}
@@ -421,10 +423,10 @@
 
                 <div class="card">
                     <h3>Export And Follow Up</h3>
-                    <p>Download the FirmwareLens PDF report{% if app_mode != "api" %} or move into the support workflow with Sentinel Bot for deeper triage{% else %} from the API preview and continue triage in the main web app if you need interactive support{% endif %}.</p>
-                    <a href="/download-report?scan_id={{ result.scan_id }}" data-analytics-event="report_downloaded" data-analytics-label="result_pdf">Download PDF Report</a>
-                    {% if app_mode != "api" %}
-                        <p style="margin-top:12px;"><a href="/support?scan_id={{ result.scan_id }}" data-analytics-event="support_opened" data-analytics-label="result_support">Open Support For This Scan</a></p>
+                    <p>Download the FirmwareLens PDF report{% if support_url %} or move into the support workflow with Sentinel Bot for deeper triage{% elif app_mode == "api" %} from the API preview and continue triage in the main web app if you need interactive support{% else %} from this public scan view{% endif %}.</p>
+                    <a href="{{ report_download_url or ('/download-report?scan_id=' ~ result.scan_id) }}" data-analytics-event="report_downloaded" data-analytics-label="result_pdf">Download PDF Report</a>
+                    {% if support_url %}
+                        <p style="margin-top:12px;"><a href="{{ support_url }}" data-analytics-event="support_opened" data-analytics-label="result_support">Open Support For This Scan</a></p>
                     {% endif %}
                 </div>
             </div>

@@ -33,18 +33,28 @@ Important environment values:
 - `FLASK_SECRET_KEY`: set to a strong random value
 - `COOKIE_SECURE=1`: required for HTTPS deployments
 - `SITE_URL=https://your-domain.example`: used for canonical URLs, sitemap generation, and robots output
+- `FRONTEND_PUBLIC_URL=https://firmware-lens.vercel.app`: lets the backend allow browser API calls from the Vercel frontend
 - `GA_MEASUREMENT_ID`: optional, enables GA4 tracking
 - `ADS_TXT_CONTENT`: optional, publishes `/ads.txt` when you are ready for ad networks
 - `API_ACCESS_KEY`: optional, protects the FastAPI upload/analyze endpoints
 
-## 3. Cloudflare Setup
+## 3. Optional Vercel Frontend -> Render Backend Split
+
+If you keep the marketing/frontend deployment on Vercel and the scan runtime on Render:
+
+- Set `BACKEND_PUBLIC_URL=https://firmwarelens.onrender.com` on the Vercel project.
+- Optionally set `PUBLIC_SCAN_MAX_UPLOAD_SIZE_BYTES` on Vercel to match the Render upload limit if you override the backend default.
+- The Vercel home page will then post firmware directly to `https://firmwarelens.onrender.com/public/analyze` instead of the Vercel runtime.
+- The Flask backend on Render now also exposes `POST /upload`, `POST /analyze-json`, and `GET /analyze-json/{scan_id}` for frontend/API integrations.
+
+## 4. Cloudflare Setup
 
 - Point your domain to the Render service using the custom-domain flow in Render.
 - In Cloudflare DNS, proxy the record after the Render custom domain is verified.
 - Use Cloudflare SSL/TLS in `Full (strict)` mode so traffic is encrypted all the way to Render.
 - Keep `SITE_URL` set to the final public HTTPS domain.
 
-## 4. SEO And Discovery
+## 5. SEO And Discovery
 
 FirmwareLens now exposes:
 
@@ -54,7 +64,7 @@ FirmwareLens now exposes:
 
 This helps search engines discover the launch site and gives you a clean path for future AdSense or partner ad setup.
 
-## 5. Local Smoke Test Before Launch
+## 6. Local Smoke Test Before Launch
 
 Run these before pushing:
 
@@ -73,7 +83,7 @@ Then manually verify:
 5. PDF download works.
 6. `/health`, `/robots.txt`, and `/sitemap.xml` all respond correctly.
 
-## 6. Ad Revenue Advice
+## 7. Ad Revenue Advice
 
 Do not place ads on the upload, result, or support workflow first. Keep the product pages trust-heavy and use ads later on content pages such as docs, guides, or tutorials.
 

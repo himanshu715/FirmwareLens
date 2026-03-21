@@ -1,3 +1,5 @@
+import io
+
 from services import app_db
 
 
@@ -171,3 +173,164 @@ def test_support_sets_noindex_header(tmp_path, monkeypatch):
 
     assert response.status_code == 200
     assert response.headers["X-Robots-Tag"] == "noindex, nofollow, noarchive"
+
+
+def test_upload_api_accepts_file_without_csrf(tmp_path, monkeypatch):
+    test_db = tmp_path / "sentinel.db"
+    monkeypatch.setattr(app_db, "DB_PATH", test_db)
+    app_db.init_db()
+
+    from app import app
+
+    app.config["TESTING"] = True
+
+    with app.test_client() as client:
+        response = client.post(
+            "/upload",
+            data={"file": (io.BytesIO(b"firmware-data"), "firmware.bin")},
+            content_type="multipart/form-data",
+            headers={"Origin": "https://firmware-lens.vercel.app"},
+        )
+
+    body = response.get_json()
+    assert response.status_code == 200
+    assert body["message"] == "Firmware uploaded successfully"
+    assert body["filename"].endswith(".bin")
+    assert response.headers["Access-Control-Allow-Origin"] == "https://firmware-lens.vercel.app"
+
+
+def test_analyze_json_accepts_upload_without_csrf(tmp_path, monkeypatch):
+    test_db = tmp_path / "sentinel.db"
+    monkeypatch.setattr(app_db, "DB_PATH", test_db)
+    app_db.init_db()
+
+    from app import app
+    import app as app_module
+
+    monkeypatch.setattr(
+        app_module,
+        "analyze_firmware",
+        lambda _path: {
+            "firmware_type": "BIN",
+            "total_strings": 4,
+            "score": 88,
+            "all_findings_count": 1,
+            "top_findings": [],
+            "findings": [],
+            "summary": {"critical": 0, "high": 0, "medium": 1},
+            "breakdown": {
+                "secrets": 0,
+                "crypto": 0,
+                "libraries": 0,
+                "suspicious": 1,
+                "bad_practices": 0,
+            },
+            "firmware_info": {"file_type": "BIN", "architecture": "ARM"},
+            "revenue": {
+                "estimated_revenue_at_risk_usd": 1000,
+                "projected_revenue_protected_usd": 750,
+                "incident_likelihood_percent": 10,
+                "executive_summary": "Summary",
+            },
+            "ai_agent": {
+                "agent_name": "Sentinel Bot",
+                "status": "ready",
+                "summary": "Summary",
+                "triage_stance": "Investigate",
+                "priority_actions": ["Review strings"],
+                "recommended_next_step": "Check extracted data",
+            },
+        },
+    )
+    app.config["TESTING"] = True
+
+    with app.test_client() as client:
+        response = client.post(
+            "/analyze-json",
+            data={"firmware": (io.BytesIO(b"firmware-data"), "firmware.bin")},
+            content_type="multipart/form-data",
+        )
+
+    body = response.get_json()
+    assert response.status_code == 200
+    assert body["firmware_type"] == "BIN"
+    assert "scan_id" in body
+
+
+def test_public_analyze_renders_public_report_flow(tmp_path, monkeypatch):
+    test_db = tmp_path / "sentinel.db"
+    monkeypatch.setattr(app_db, "DB_PATH", test_db)
+    app_db.init_db()
+
+    from app import app
+    import app as app_module
+
+    monkeypatch.setattr(
+        app_module,
+        "analyze_firmware",
+        lambda _path: {
+            "firmware_type": "BIN",
+            "total_strings": 4,
+            "score": 88,
+            "all_findings_count": 1,
+            "top_findings": [],
+            "findings": [],
+            "summary": {"critical": 0, "high": 0, "medium": 1},
+            "breakdown": {
+                "secrets": 0,
+                "crypto": 0,
+                "libraries": 0,
+                "suspicious": 1,
+                "bad_practices": 0,
+            },
+            "firmware_info": {"file_type": "BIN", "architecture": "ARM"},
+            "revenue": {
+                "estimated_revenue_at_risk_usd": 1000,
+                "projected_revenue_protected_usd": 750,
+                "incident_likelihood_percent": 10,
+                "executive_summary": "Summary",
+            },
+            "ai_agent": {
+                "agent_name": "Sentinel Bot",
+                "status": "ready",
+                "summary": "Summary",
+                "triage_stance": "Investigate",
+                "priority_actions": ["Review strings"],
+                "recommended_next_step": "Check extracted data",
+            },
+        },
+    )
+    app.config["TESTING"] = True
+
+    with app.test_client() as client:
+        response = client.post(
+            "/public/analyze",
+            data={"firmware": (io.BytesIO(b"firmware-data"), "firmware.bin")},
+            content_type="multipart/form-data",
+        )
+
+    assert response.status_code == 200
+    assert b"Public scan mode" in response.data
+    assert b"/public/download-report?scan_id=" in response.data
+
+
+def test_home_uses_backend_public_upload_when_configured(tmp_path, monkeypatch):
+    test_db = tmp_path / "sentinel.db"
+    monkeypatch.setattr(app_db, "DB_PATH", test_db)
+    app_db.init_db()
+
+    from app import app
+    import app as app_module
+
+    monkeypatch.setattr(app_module, "PUBLIC_ANALYZE_URL", "https://firmwarelens.onrender.com/public/analyze")
+    monkeypatch.setattr(app_module, "BACKEND_PUBLIC_URL", "https://firmwarelens.onrender.com")
+    monkeypatch.setattr(app_module, "PUBLIC_SCAN_MAX_UPLOAD_SIZE", 50 * 1024 * 1024)
+    monkeypatch.setattr(app_module, "PUBLIC_SCAN_MAX_UPLOAD_SIZE_MB", 50.0)
+    app.config["TESTING"] = True
+
+    with app.test_client() as client:
+        response = client.get("/")
+
+    assert response.status_code == 200
+    assert b"https://firmwarelens.onrender.com/public/analyze" in response.data
+    assert b"Backend upload enabled." in response.data

@@ -573,6 +573,8 @@
                 {% if user %}
                     <a class="header-link" href="/support">Support</a>
                     <a class="header-link" href="/logout">Logout</a>
+                {% elif public_scan_enabled and workspace_url %}
+                    <a class="header-link" href="{{ workspace_url }}">Open Full Workspace</a>
                 {% else %}
                     <a class="header-link" href="/?auth=login#access">Sign In</a>
                     <a class="header-link" href="/?auth=register#access">Create Account</a>
@@ -596,9 +598,15 @@
             </div>
 
             <div class="panel upload-card" id="access">
-                {% if user %}
+                {% if user or public_scan_enabled %}
                     <h2>Upload Firmware</h2>
-                    <div class="subtitle">Start a FirmwareLens scan and get a complete report with evidence, severity, business framing, and Sentinel Bot support.</div>
+                    <div class="subtitle">
+                        {% if public_scan_enabled and not user %}
+                            Upload firmware from the frontend and run the scan on the persistent Render backend without hitting the Vercel preview runtime.
+                        {% else %}
+                            Start a FirmwareLens scan and get a complete report with evidence, severity, business framing, and Sentinel Bot support.
+                        {% endif %}
+                    </div>
 
                     {% if deployment_notice %}
                         <div class="deployment-note">
@@ -606,14 +614,20 @@
                         </div>
                     {% endif %}
 
-                    {% if user.guest %}
+                    {% if user and user.guest %}
                         <div class="guest-note">
                             <strong>Guest session active.</strong> You can scan firmware and view reports right away. Scan access stays tied to this browser session, while saved support history and feedback still require an account.
                         </div>
+                    {% elif public_scan_enabled and workspace_url %}
+                        <div class="guest-note">
+                            <strong>Backend upload enabled.</strong> This form sends firmware directly to the Render backend at <a href="{{ workspace_url }}">{{ workspace_url }}</a>, so uploads use the backend runtime and report workflow instead of the Vercel preview filesystem.
+                        </div>
                     {% endif %}
 
-                    <form action="/analyze" method="post" enctype="multipart/form-data" onsubmit="return showLoader()" data-analytics-event="scan_started" data-analytics-label="home_upload">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <form action="{{ public_analyze_url or '/analyze' }}" method="post" enctype="multipart/form-data" onsubmit="return showLoader()" data-analytics-event="scan_started" data-analytics-label="home_upload">
+                        {% if not public_scan_enabled %}
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        {% endif %}
 
                         <label id="uploadBox" class="upload-box"
                             ondrop="handleDrop(event)"
@@ -637,6 +651,9 @@
 
                         <div class="formats">
                             Supported: .bin, .img, .fw, .hex, .elf | Max size: {{ max_upload_size_mb }}MB | Full report and PDF included
+                            {% if public_scan_enabled and workspace_url %}
+                                <br>Need saved support history or account workflows? Continue in the <a href="{{ workspace_url }}">full backend workspace</a>.
+                            {% endif %}
                         </div>
                     </form>
                 {% else %}

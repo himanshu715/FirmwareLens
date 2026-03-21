@@ -3,17 +3,22 @@ import secrets
 from datetime import timedelta
 from functools import wraps
 
-from flask import Flask, Response, abort, g, redirect, render_template, request, send_file, session, url_for
+from flask import Flask, Response, abort, g, jsonify, redirect, render_template, request, send_file, session, url_for
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from api.pdf_report import generate_pdf
 from config import (
     ADS_TXT_CONTENT,
+    API_ALLOWED_ORIGINS,
+    BACKEND_PUBLIC_URL,
     DEPLOYMENT_NOTICE,
     IS_VERCEL,
     MAX_UPLOAD_SIZE,
     MAX_UPLOAD_SIZE_MB,
     PREFERRED_URL_SCHEME,
+    PUBLIC_ANALYZE_URL,
+    PUBLIC_SCAN_MAX_UPLOAD_SIZE,
+    PUBLIC_SCAN_MAX_UPLOAD_SIZE_MB,
     build_content_security_policy,
     ensure_runtime_dirs,
     public_origin,
@@ -76,8 +81,27 @@ NOINDEX_EXACT_PATHS = {
     "/feedback",
     "/field-report",
     "/health",
+    "/upload",
+    "/analyze-json",
+    "/public/analyze",
+    "/public/download-report",
 }
-NOINDEX_PREFIX_PATHS = ("/analyze-json/", "/upload")
+NOINDEX_PREFIX_PATHS = ("/analyze-json",)
+CSRF_EXEMPT_POST_PATHS = {"/upload", "/analyze-json", "/public/analyze"}
+
+
+def is_json_api_path(path):
+    return path in {"/upload", "/analyze-json"} or path.startswith("/analyze-json/")
+
+
+def build_api_error(message, status_code):
+    response = jsonify({"detail": message})
+    response.status_code = status_code
+    return response
+
+
+def get_uploaded_firmware():
+    return request.files.get("firmware") or request.files.get("file")
 
 
 def is_guest_user(user=None):
@@ -172,6 +196,42 @@ def remember_guest_scan(scan_id):
         session["guest_scans"] = guest_scans
 
 
+def store_scan_state(scan_id, user, original_filename, stored_filename, result, track_guest_session=True):
+    if user and is_guest_user(user):
+        if track_guest_session:
+            remember_guest_scan(scan_id)
+        save_scan_record(scan_id, None, original_filename, stored_filename)
+    elif user:
+        save_scan_record(scan_id, user["id"], original_filename, stored_filename)
+    else:
+        save_scan_record(scan_id, None, original_filename, stored_filename)
+
+    persist_result(scan_id, result)
+
+
+def analyze_uploaded_payload(filename, payload):
+    scan_id = create_scan_id()
+    file_path = build_upload_path(scan_id, filename)
+    file_path.write_bytes(payload)
+
+    result = analyze_firmware(str(file_path))
+    result["scan_id"] = scan_id
+    return scan_id, file_path.name, result
+
+
+def render_result_page(result, user, app_mode, analytics_events=None, report_download_url=None, support_url=None, home_url=None):
+    return render_template(
+        "result.html",
+        result=result,
+        user=user,
+        app_mode=app_mode,
+        analytics_events=analytics_events or [],
+        report_download_url=report_download_url,
+        support_url=support_url,
+        home_url=home_url,
+    )
+
+
 def load_scan_for_user(scan_id, user):
     normalized_scan_id = normalize_scan_id(scan_id)
 
@@ -244,20 +304,28 @@ def should_noindex_path(path):
 
 @app.context_processor
 def inject_template_globals():
+    upload_size_bytes = PUBLIC_SCAN_MAX_UPLOAD_SIZE if PUBLIC_ANALYZE_URL else MAX_UPLOAD_SIZE
+    upload_size_mb = PUBLIC_SCAN_MAX_UPLOAD_SIZE_MB if PUBLIC_ANALYZE_URL else MAX_UPLOAD_SIZE_MB
     return {
         "csrf_token": get_csrf_token(),
         "ga_measurement_id": GA_MEASUREMENT_ID,
         "site_origin": public_origin(request),
-        "max_upload_size_mb": MAX_UPLOAD_SIZE_MB,
-        "max_upload_size_bytes": MAX_UPLOAD_SIZE,
+        "max_upload_size_mb": upload_size_mb,
+        "max_upload_size_bytes": upload_size_bytes,
         "deployment_notice": DEPLOYMENT_NOTICE,
         "is_vercel": IS_VERCEL,
+        "public_analyze_url": PUBLIC_ANALYZE_URL,
+        "public_scan_enabled": bool(PUBLIC_ANALYZE_URL),
+        "workspace_url": BACKEND_PUBLIC_URL,
     }
 
 
 @app.before_request
 def protect_post_routes():
     if request.method != "POST":
+        return None
+
+    if request.path in CSRF_EXEMPT_POST_PATHS:
         return None
 
     session_token = session.get("_csrf_token")
@@ -500,7 +568,10 @@ def robots_txt():
         "Disallow: /field-report",
         "Disallow: /health",
         "Disallow: /upload",
+        "Disallow: /analyze-json",
         "Disallow: /analyze-json/",
+        "Disallow: /public/analyze",
+        "Disallow: /public/download-report",
     ]
     if origin:
         lines.append(f"Sitemap: {origin}/sitemap.xml")
@@ -530,10 +601,118 @@ def ads_txt():
     return Response(f"{ADS_TXT_CONTENT}\n", mimetype="text/plain")
 
 
+@app.route("/upload", methods=["OPTIONS"])
+@app.route("/analyze-json", methods=["OPTIONS"])
+@app.route("/analyze-json/<scan_id>", methods=["OPTIONS"])
+def api_preflight(scan_id=None):
+    return Response(status=204)
+
+
+@app.route("/upload", methods=["POST"])
+def upload():
+    file = get_uploaded_firmware()
+    if file is None:
+        return build_api_error("No firmware file was provided.", 400)
+
+    payload = file.read()
+
+    try:
+        validate_upload(file.filename, len(payload))
+    except ScanStorageError as error:
+        return build_api_error(str(error), 400)
+
+    scan_id = create_scan_id()
+    file_path = build_upload_path(scan_id, file.filename)
+    file_path.write_bytes(payload)
+    save_scan_record(scan_id, None, file.filename, file_path.name)
+
+    return jsonify(
+        {
+            "scan_id": scan_id,
+            "filename": file_path.name,
+            "original_filename": file.filename,
+            "message": "Firmware uploaded successfully",
+        }
+    )
+
+
+@app.route("/analyze-json", methods=["POST"])
+def analyze_json_upload():
+    file = get_uploaded_firmware()
+    if file is None:
+        return build_api_error("No firmware file was provided.", 400)
+
+    payload = file.read()
+
+    try:
+        validate_upload(file.filename, len(payload))
+    except ScanStorageError as error:
+        return build_api_error(str(error), 400)
+
+    scan_id, stored_filename, result = analyze_uploaded_payload(file.filename, payload)
+    store_scan_state(scan_id, None, file.filename, stored_filename, result, track_guest_session=False)
+    return jsonify(result)
+
+
+@app.route("/analyze-json/<scan_id>")
+def analyze_json(scan_id):
+    try:
+        result = load_result(scan_id)
+    except ScanStorageError as error:
+        return build_api_error(str(error), 400)
+
+    if not result:
+        return build_api_error("Scan not found.", 404)
+
+    return jsonify(result)
+
+
+@app.route("/public/analyze", methods=["POST"])
+def public_analyze():
+    file = get_uploaded_firmware()
+    if file is None:
+        abort(400, description="Please choose a firmware file.")
+
+    payload = file.read()
+
+    try:
+        validate_upload(file.filename, len(payload))
+    except ScanStorageError as error:
+        abort(400, description=str(error))
+
+    scan_id, stored_filename, result = analyze_uploaded_payload(file.filename, payload)
+    store_scan_state(scan_id, None, file.filename, stored_filename, result, track_guest_session=False)
+
+    return render_result_page(
+        result=result,
+        user={"username": "Guest"},
+        app_mode="public",
+        analytics_events=[],
+        report_download_url=url_for("public_download_report", scan_id=scan_id),
+        home_url=public_origin(request) or "/",
+    )
+
+
+@app.route("/public/download-report")
+def public_download_report():
+    scan_id = request.args.get("scan_id", "").strip()
+    try:
+        result = load_result(scan_id)
+    except ScanStorageError:
+        abort(400, description="Invalid scan identifier.")
+
+    if not result:
+        abort(404, description="This scan report is no longer available.")
+
+    file_path = build_report_path(scan_id)
+    generate_pdf(result, str(file_path))
+    return send_file(file_path, as_attachment=True, download_name=f"firmware_report_{scan_id}.pdf")
+
+
 @app.route("/analyze", methods=["POST"])
 @login_required
 def analyze():
-    file = request.files.get("firmware")
+    file = get_uploaded_firmware()
     user = current_user()
 
     if file is None:
@@ -546,21 +725,10 @@ def analyze():
     except ScanStorageError as error:
         return render_home(user=user, error=str(error)), 400
 
-    scan_id = create_scan_id()
-    file_path = build_upload_path(scan_id, file.filename)
-    file_path.write_bytes(payload)
-    if is_guest_user(user):
-        remember_guest_scan(scan_id)
-        save_scan_record(scan_id, None, file.filename, file_path.name)
-    else:
-        save_scan_record(scan_id, user["id"], file.filename, file_path.name)
+    scan_id, stored_filename, result = analyze_uploaded_payload(file.filename, payload)
+    store_scan_state(scan_id, user, file.filename, stored_filename, result)
 
-    result = analyze_firmware(str(file_path))
-    result["scan_id"] = scan_id
-    persist_result(scan_id, result)
-
-    return render_template(
-        "result.html",
+    return render_result_page(
         result=result,
         user=user,
         app_mode="ui",
@@ -572,6 +740,9 @@ def analyze():
                 "firmware_type": result["firmware_type"],
             },
         ),
+        report_download_url=url_for("download_report", scan_id=scan_id),
+        support_url=url_for("support", scan_id=scan_id),
+        home_url=url_for("index"),
     )
 
 
@@ -601,6 +772,13 @@ def add_security_headers(response):
         enable_analytics=bool(GA_MEASUREMENT_ID)
     )
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    if is_json_api_path(request.path):
+        origin = request.headers.get("Origin", "").strip().rstrip("/")
+        if origin and origin in API_ALLOWED_ORIGINS:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-API-Key"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+            response.headers["Vary"] = "Origin"
     if should_noindex_path(request.path):
         response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
     if request.path.startswith("/static/"):
