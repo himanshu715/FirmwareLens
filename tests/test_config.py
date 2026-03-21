@@ -18,6 +18,20 @@ def test_csp_omits_google_analytics_sources_when_disabled():
     assert "https://www.google-analytics.com" not in csp
 
 
+def test_csp_includes_vercel_speed_insights_sources_when_enabled():
+    csp = build_content_security_policy(enable_speed_insights=True)
+
+    assert "https://va.vercel-scripts.com" in csp
+    assert "https://vitals.vercel-insights.com" in csp
+
+
+def test_csp_omits_vercel_speed_insights_sources_when_disabled():
+    csp = build_content_security_policy(enable_speed_insights=False)
+
+    assert "https://va.vercel-scripts.com" not in csp
+    assert "https://vitals.vercel-insights.com" not in csp
+
+
 def test_vercel_uses_tmp_runtime_root(monkeypatch):
     monkeypatch.setenv("VERCEL", "1")
     monkeypatch.delenv("RUNTIME_ROOT", raising=False)

@@ -74,7 +74,7 @@ def public_origin(request=None):
     return request.url_root.rstrip("/")
 
 
-def build_content_security_policy(enable_analytics=False):
+def build_content_security_policy(enable_analytics=False, enable_speed_insights=False):
     directives = {
         "default-src": ["'self'"],
         "style-src": ["'self'", "'unsafe-inline'"],
@@ -103,6 +103,10 @@ def build_content_security_policy(enable_analytics=False):
                 "https://www.googletagmanager.com",
             ]
         )
+
+    if enable_speed_insights:
+        directives["script-src"].append("https://va.vercel-scripts.com")
+        directives["connect-src"].append("https://vitals.vercel-insights.com")
 
     if BACKEND_PUBLIC_URL:
         directives["form-action"].append(BACKEND_PUBLIC_URL)

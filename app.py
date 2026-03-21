@@ -67,6 +67,7 @@ app.config["SESSION_COOKIE_SECURE"] = os.getenv(
 ) == "1"
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "firmwarelens-dev-secret")
 GA_MEASUREMENT_ID = os.getenv("GA_MEASUREMENT_ID", "").strip()
+VERCEL_SPEED_INSIGHTS_ENABLED = os.getenv("VERCEL_SPEED_INSIGHTS", "").strip().lower() in ("1", "true", "yes")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 
 NOINDEX_EXACT_PATHS = {
@@ -309,6 +310,7 @@ def inject_template_globals():
     return {
         "csrf_token": get_csrf_token(),
         "ga_measurement_id": GA_MEASUREMENT_ID,
+        "speed_insights_enabled": VERCEL_SPEED_INSIGHTS_ENABLED,
         "site_origin": public_origin(request),
         "max_upload_size_mb": upload_size_mb,
         "max_upload_size_bytes": upload_size_bytes,
@@ -769,7 +771,8 @@ def add_security_headers(response):
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Content-Security-Policy"] = build_content_security_policy(
-        enable_analytics=bool(GA_MEASUREMENT_ID)
+        enable_analytics=bool(GA_MEASUREMENT_ID),
+        enable_speed_insights=VERCEL_SPEED_INSIGHTS_ENABLED
     )
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     if is_json_api_path(request.path):

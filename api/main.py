@@ -36,6 +36,7 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 API_ACCESS_KEY = os.getenv("API_ACCESS_KEY", "").strip()
 GA_MEASUREMENT_ID = os.getenv("GA_MEASUREMENT_ID", "").strip()
+VERCEL_SPEED_INSIGHTS_ENABLED = os.getenv("VERCEL_SPEED_INSIGHTS", "").strip().lower() in ("1", "true", "yes")
 
 
 def require_api_key(x_api_key: str | None):
@@ -50,7 +51,8 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Content-Security-Policy"] = build_content_security_policy(
-        enable_analytics=bool(GA_MEASUREMENT_ID)
+        enable_analytics=bool(GA_MEASUREMENT_ID),
+        enable_speed_insights=VERCEL_SPEED_INSIGHTS_ENABLED
     )
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
@@ -97,6 +99,7 @@ async def analyze(request: Request, firmware: UploadFile = File(...), x_api_key:
             "user": {"username": "api-user"},
             "app_mode": "api",
             "ga_measurement_id": GA_MEASUREMENT_ID,
+            "speed_insights_enabled": VERCEL_SPEED_INSIGHTS_ENABLED,
             "analytics_events": [],
             "deployment_notice": DEPLOYMENT_NOTICE,
             "is_vercel": IS_VERCEL,
