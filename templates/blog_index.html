@@ -1,0 +1,39 @@
+{% extends "blog_layout.html" %}
+
+{% block structured_data %}
+    <script type="application/ld+json">{{ collection_schema_json|safe }}</script>
+    <script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>
+{% endblock %}
+
+{% block content %}
+    <section class="hero">
+        <span class="eyebrow">Engineering Blog</span>
+        <h1>Firmware debugging, RTOS, and embedded troubleshooting guides</h1>
+        <p>These articles target the exact long-tail problems engineers search for when devices reset, protocols fail, or field units behave differently from the lab.</p>
+        <div class="meta-line">
+            <span>{{ posts|length }} indexed guides</span>
+            <span>Focused on practical troubleshooting</span>
+            <span>Internal links back to the FirmwareLens scanner</span>
+        </div>
+    </section>
+
+    <section class="card-grid">
+        {% for post in posts %}
+            <article class="grid-card">
+                <div class="meta-line">
+                    <span>{{ post.category }}</span>
+                    <span>{{ post.reading_time_minutes }} min read</span>
+                    <span>Updated {{ post.updated_at }}</span>
+                </div>
+                <h2 class="post-card-title"><a class="post-card-link" href="{{ post.path }}">{{ post.title }}</a></h2>
+                <p>{{ post.description }}</p>
+                <div class="tag-row">
+                    {% for term in post.search_terms %}
+                        <span class="tag">{{ term }}</span>
+                    {% endfor %}
+                </div>
+                <a class="button-link" href="{{ post.path }}">Read guide</a>
+            </article>
+        {% endfor %}
+    </section>
+{% endblock %}

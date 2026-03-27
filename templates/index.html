@@ -3,19 +3,19 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>FirmwareLens | Firmware Security Scanner for IoT and Embedded Teams</title>
-    <meta name="description" content="FirmwareLens is a firmware security scanner for IoT, embedded, and product teams. Upload firmware, detect secrets and weak crypto, and get readable reports with Sentinel Bot guidance.">
+    <title>FirmwareLens | Firmware Analysis Tool, Security Scanner, and Embedded Troubleshooting Guides</title>
+    <meta name="description" content="Upload firmware, inspect secrets, crypto, suspicious strings, and use FirmwareLens guides for watchdog reset debugging, RTOS troubleshooting, and embedded firmware triage.">
     <meta name="robots" content="index,follow">
     <meta name="theme-color" content="#07101f">
-    <meta property="og:title" content="FirmwareLens | Firmware Security Scanner for IoT and Embedded Teams">
-    <meta property="og:description" content="Upload firmware, detect secrets, weak crypto, suspicious strings, and risky patterns, then get a readable security report with Sentinel Bot support.">
+    <meta property="og:title" content="FirmwareLens | Firmware Analysis Tool, Security Scanner, and Embedded Troubleshooting Guides">
+    <meta property="og:description" content="Upload firmware, inspect risky patterns, and read practical guides for watchdog resets, RTOS issues, and embedded troubleshooting.">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="FirmwareLens">
     <meta property="og:url" content="{{ site_origin }}/">
     <meta property="og:image" content="{{ site_origin }}/static/logo.png">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="FirmwareLens | Firmware Security Scanner for IoT and Embedded Teams">
-    <meta name="twitter:description" content="Firmware security made simple for developers, students, and IoT teams.">
+    <meta name="twitter:title" content="FirmwareLens | Firmware Analysis Tool, Security Scanner, and Embedded Troubleshooting Guides">
+    <meta name="twitter:description" content="Firmware analysis, field triage, and practical embedded debugging content in one place.">
     <meta name="twitter:image" content="{{ site_origin }}/static/logo.png">
     <link rel="canonical" href="{{ site_origin }}/">
     <link rel="icon" href="/static/logo.png" type="image/png">
@@ -28,7 +28,7 @@
             "operatingSystem": "Web",
             "url": "{{ site_origin }}/",
             "image": "{{ site_origin }}/static/logo.png",
-            "description": "FirmwareLens scans uploaded firmware for secrets, weak crypto, suspicious strings, outdated components, and risky implementation patterns.",
+            "description": "FirmwareLens scans uploaded firmware for secrets, weak crypto, suspicious strings, outdated components, and risky implementation patterns while supporting field triage and troubleshooting workflows.",
             "offers": {
                 "@type": "Offer",
                 "price": "0",
@@ -570,6 +570,7 @@
             </a>
             <div class="header-actions">
                 <div class="header-tag">Signed in as {{ user.username if user else 'Guest' }}</div>
+                <a class="header-link" href="/blog">Blog</a>
                 {% if user %}
                     <a class="header-link" href="/support">Support</a>
                     <a class="header-link" href="/logout">Logout</a>
@@ -584,15 +585,15 @@
 
         <section class="hero">
             <div class="panel hero-copy">
-                <span class="eyebrow">Launch Edition</span>
-                <h1>Firmware Security Made Simple</h1>
-                <p>Upload firmware and get fast, readable security insights without needing source code, hardware labs, or a complex reverse-engineering workflow.</p>
-                <p>FirmwareLens scans for hardcoded secrets, weak crypto, suspicious strings, outdated components, and risky implementation patterns, then layers in Sentinel Bot guidance for triage and field support.</p>
+                <span class="eyebrow">Firmware Analysis Platform</span>
+                <h1>Firmware Analysis For Security, Triage, And Embedded Troubleshooting</h1>
+                <p>Upload firmware and get readable signals fast when you are dealing with suspicious binaries, risky release builds, watchdog resets, or hard-to-explain field failures.</p>
+                <p>FirmwareLens scans for hardcoded secrets, weak crypto, suspicious strings, outdated components, and risky implementation patterns, then pairs those findings with Sentinel Bot guidance and searchable engineering content.</p>
 
                 <div class="hero-list">
                     <div><strong>Binary-first analysis</strong> Scan firmware images directly, even when source code is unavailable.</div>
                     <div><strong>Readable reports</strong> Get a full findings view, executive framing, and PDF export in one workflow.</div>
-                    <div><strong>Sentinel Bot built in</strong> Ask follow-up questions and get guided next steps from the assistant.</div>
+                    <div><strong>Guides for real incidents</strong> Explore content for watchdog reset debugging, RTOS troubleshooting, and bus-level failure analysis.</div>
                     <div><strong>Field-ready support</strong> Capture device issues and generate bot-guided actions when no debugger is available.</div>
                 </div>
             </div>
@@ -733,6 +734,43 @@
             </div>
         </section>
 
+        <section class="panel section-card full-width-section">
+            <h2>Why Engineers Search For FirmwareLens</h2>
+            <div class="subtitle">Debugging firmware is slow when the only clues are resets, logs, and a binary image. The homepage now explains the problem, the product, and the supporting content in terms search engines can understand.</div>
+
+            <div class="compare-grid">
+                <div class="compare-card">
+                    <h4>The Problem</h4>
+                    <p>Embedded teams lose time on watchdog resets, boot loops, RTOS starvation, peripheral issues, and field failures that are hard to reproduce in the lab.</p>
+                    <ul>
+                        <li>Symptoms show up before root cause is visible</li>
+                        <li>Deployed binaries often differ from the local build</li>
+                        <li>Support teams may not have debugger access</li>
+                    </ul>
+                </div>
+
+                <div class="compare-card">
+                    <h4>The Solution</h4>
+                    <p>FirmwareLens gives teams a faster starting point by scanning firmware artifacts, organizing findings, exporting reports, and keeping Sentinel Bot inside the workflow.</p>
+                    <ul>
+                        <li>Inspect strings, secrets, libraries, and risky patterns</li>
+                        <li>Use support workflows for field issue logging and triage</li>
+                        <li>Pair scan results with debugging and troubleshooting guides</li>
+                    </ul>
+                </div>
+
+                <div class="compare-card">
+                    <h4>The Search Intent</h4>
+                    <p>Instead of chasing broad keywords like firmware, the site now targets specific engineering queries that match real incident workflows.</p>
+                    <ul>
+                        <li>Firmware debugging tool online</li>
+                        <li>Watchdog reset debugging</li>
+                        <li>RTOS debugging guide</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
         <section class="sections" id="features">
             <div class="panel section-card">
                 <h2>Core Detection</h2>
@@ -851,6 +889,25 @@
             </div>
         </section>
 
+        <section class="panel section-card full-width-section" id="blog">
+            <h2>Popular Firmware Debugging And Troubleshooting Guides</h2>
+            <div class="subtitle">These internal links give search engines crawlable topic depth and give engineers useful next steps when they are researching a real issue.</div>
+
+            <div class="compare-grid">
+                {% for post in blog_posts %}
+                    <div class="compare-card">
+                        <h4><a href="{{ post.path }}">{{ post.title }}</a></h4>
+                        <p>{{ post.description }}</p>
+                        <ul>
+                            {% for term in post.search_terms %}
+                                <li>{{ term }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
         <section class="panel section-card full-width-section" id="faq">
             <h2>Frequently Asked Questions</h2>
             <div class="faq-list">
@@ -867,8 +924,8 @@
                     <p>The product is a good fit for IoT teams, embedded developers, students, researchers, and field-support groups that need a simpler firmware security workflow.</p>
                 </div>
                 <div class="faq-item">
-                    <h3>Can Sentinel Bot help when a debugger is unavailable?</h3>
-                    <p>Yes. Sentinel Bot is designed to answer scan questions, guide triage, and generate field issue investigation steps when teams only have symptoms, logs, and device context.</p>
+                    <h3>Can FirmwareLens help with watchdog reset debugging and field triage?</h3>
+                    <p>Yes. FirmwareLens helps teams inspect the deployed firmware image, review scan evidence, and use Sentinel Bot plus the blog guides when a watchdog reset or field failure needs fast investigation.</p>
                 </div>
             </div>
         </section>

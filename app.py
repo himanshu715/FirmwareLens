@@ -1,3 +1,4 @@
+import json
 import os
 import secrets
 from datetime import timedelta
@@ -49,6 +50,7 @@ from services.scan_store import (
     persist_result,
     validate_upload,
 )
+from services.blog_content import BLOG_INDEX_COPY, BLOG_POSTS, BLOG_POSTS_BY_SLUG, related_posts_for
 
 
 ensure_runtime_dirs()
@@ -295,7 +297,120 @@ def render_home(**context):
         user=user,
         auth_mode=auth_mode if auth_mode in {"login", "register"} else "login",
         analytics_events=analytics_events,
+        blog_posts=BLOG_POSTS,
         **context,
+    )
+
+
+def _blog_page_url(origin, path):
+    return f"{origin}{path}" if origin else path
+
+
+def _blog_collection_schema(origin):
+    return {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": BLOG_INDEX_COPY["title"],
+        "description": BLOG_INDEX_COPY["description"],
+        "url": _blog_page_url(origin, "/blog"),
+        "mainEntity": {
+            "@type": "ItemList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": index,
+                    "url": _blog_page_url(origin, post["path"]),
+                    "name": post["title"],
+                }
+                for index, post in enumerate(BLOG_POSTS, start=1)
+            ],
+        },
+    }
+
+
+def _blog_post_schema(origin, post):
+    logo_url = _blog_page_url(origin, "/static/logo.png")
+    article_url = _blog_page_url(origin, post["path"])
+    return {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": post["title"],
+        "description": post["description"],
+        "datePublished": post["published_at"],
+        "dateModified": post["updated_at"],
+        "author": {"@type": "Organization", "name": "FirmwareLens"},
+        "publisher": {
+            "@type": "Organization",
+            "name": "FirmwareLens",
+            "logo": {"@type": "ImageObject", "url": logo_url},
+        },
+        "mainEntityOfPage": article_url,
+        "url": article_url,
+        "keywords": ", ".join(post["search_terms"]),
+    }
+
+
+def _blog_breadcrumb_schema(origin, post=None):
+    items = [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": _blog_page_url(origin, "/"),
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Blog",
+            "item": _blog_page_url(origin, "/blog"),
+        },
+    ]
+    if post:
+        items.append(
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": post["title"],
+                "item": _blog_page_url(origin, post["path"]),
+            }
+        )
+    return {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": items,
+    }
+
+
+def render_blog_index():
+    origin = public_origin(request)
+    analytics_events = collect_analytics_events()
+    return render_template(
+        "blog_index.html",
+        user=current_user(),
+        posts=BLOG_POSTS,
+        analytics_events=analytics_events,
+        page_title=f"{BLOG_INDEX_COPY['title']} | FirmwareLens",
+        page_description=BLOG_INDEX_COPY["description"],
+        canonical_url=_blog_page_url(origin, "/blog"),
+        collection_schema_json=json.dumps(_blog_collection_schema(origin)),
+        breadcrumb_schema_json=json.dumps(_blog_breadcrumb_schema(origin)),
+    )
+
+
+def render_blog_post(post):
+    origin = public_origin(request)
+    analytics_events = collect_analytics_events()
+    return render_template(
+        "blog_post.html",
+        user=current_user(),
+        post=post,
+        related_posts=related_posts_for(post["slug"]),
+        analytics_events=analytics_events,
+        page_title=f"{post['title']} | FirmwareLens",
+        page_description=post["description"],
+        canonical_url=_blog_page_url(origin, post["path"]),
+        article_schema_json=json.dumps(_blog_post_schema(origin, post)),
+        breadcrumb_schema_json=json.dumps(_blog_breadcrumb_schema(origin, post)),
     )
 
 
@@ -416,6 +531,19 @@ def guest_login():
 @app.route("/")
 def index():
     return render_home()
+
+
+@app.route("/blog")
+def blog_index():
+    return render_blog_index()
+
+
+@app.route("/blog/<slug>")
+def blog_post(slug):
+    post = BLOG_POSTS_BY_SLUG.get(slug)
+    if not post:
+        abort(404, description="That blog post was not found.")
+    return render_blog_post(post)
 
 
 @app.route("/support")
@@ -583,16 +711,31 @@ def robots_txt():
 @app.route("/sitemap.xml")
 def sitemap_xml():
     origin = public_origin(request)
-    body = (
-        '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-        "  <url>\n"
-        f"    <loc>{origin}/</loc>\n"
-        "    <changefreq>weekly</changefreq>\n"
-        "    <priority>1.0</priority>\n"
-        "  </url>\n"
-        "</urlset>\n"
+    entries = [
+        {"loc": _blog_page_url(origin, "/"), "changefreq": "weekly", "priority": "1.0"},
+        {"loc": _blog_page_url(origin, "/blog"), "changefreq": "weekly", "priority": "0.9"},
+    ]
+    entries.extend(
+        {
+            "loc": _blog_page_url(origin, post["path"]),
+            "changefreq": "monthly",
+            "priority": "0.8",
+            "lastmod": post["updated_at"],
+        }
+        for post in BLOG_POSTS
     )
+
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for entry in entries:
+        lines.append("  <url>")
+        lines.append(f"    <loc>{entry['loc']}</loc>")
+        if entry.get("lastmod"):
+            lines.append(f"    <lastmod>{entry['lastmod']}</lastmod>")
+        lines.append(f"    <changefreq>{entry['changefreq']}</changefreq>")
+        lines.append(f"    <priority>{entry['priority']}</priority>")
+        lines.append("  </url>")
+    lines.append("</urlset>")
+    body = "\n".join(lines) + "\n"
     return Response(body, mimetype="application/xml")
 
 

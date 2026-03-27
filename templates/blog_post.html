@@ -1,0 +1,73 @@
+{% extends "blog_layout.html" %}
+
+{% block structured_data %}
+    <script type="application/ld+json">{{ article_schema_json|safe }}</script>
+    <script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>
+{% endblock %}
+
+{% block content %}
+    <div class="breadcrumb">
+        <a href="/">Home</a>
+        <span>/</span>
+        <a href="/blog">Blog</a>
+        <span>/</span>
+        <span>{{ post.title }}</span>
+    </div>
+
+    <section class="hero">
+        <span class="eyebrow">{{ post.category }}</span>
+        <h1>{{ post.title }}</h1>
+        <p>{{ post.intro }}</p>
+        <div class="meta-line">
+            <span>{{ post.reading_time_minutes }} min read</span>
+            <span>{{ post.word_count }} words</span>
+            <span>Updated {{ post.updated_at }}</span>
+        </div>
+        <div class="tag-row">
+            {% for term in post.search_terms %}
+                <span class="tag">{{ term }}</span>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="content-grid">
+        <article class="content-card article-copy">
+            <h2>Key Takeaways</h2>
+            <ul class="takeaway-list">
+                {% for takeaway in post.takeaways %}
+                    <li>{{ takeaway }}</li>
+                {% endfor %}
+            </ul>
+
+            {% for section in post.sections %}
+                <h3>{{ section.heading }}</h3>
+                {% for paragraph in section.paragraphs %}
+                    <p>{{ paragraph }}</p>
+                {% endfor %}
+                {% if section.bullets %}
+                    <ul>
+                        {% for bullet in section.bullets %}
+                            <li>{{ bullet }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endfor %}
+        </article>
+
+        <aside class="side-stack">
+            <div class="cta-card">
+                <h2>{{ post.cta_title }}</h2>
+                <p>{{ post.cta_body }}</p>
+                <a class="button-link" href="/">Open FirmwareLens</a>
+            </div>
+
+            <div class="grid-card">
+                <h3>More Guides</h3>
+                {% for related in related_posts %}
+                    <p><a class="post-card-link" href="{{ related.path }}">{{ related.title }}</a></p>
+                {% endfor %}
+                <a class="button-link" href="/blog">Browse all guides</a>
+            </div>
+        </aside>
+    </section>
+{% endblock %}

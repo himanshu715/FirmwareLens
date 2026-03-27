@@ -98,7 +98,44 @@ def test_home_renders_login_panel_for_guests(tmp_path, monkeypatch):
     assert response.status_code == 200
     assert b"Sign In To Start" in response.data
     assert b"Sign In To FirmwareLens" in response.data
-    assert b"Firmware Security Scanner for IoT and Embedded Teams" in response.data
+    assert b"Firmware Analysis Tool, Security Scanner, and Embedded Troubleshooting Guides" in response.data
+    assert b"/blog/firmware-debugging-guide" in response.data
+
+
+def test_blog_index_renders_guides(tmp_path, monkeypatch):
+    test_db = tmp_path / "sentinel.db"
+    monkeypatch.setattr(app_db, "DB_PATH", test_db)
+    app_db.init_db()
+
+    from app import app
+
+    app.config["TESTING"] = True
+
+    with app.test_client() as client:
+        response = client.get("/blog")
+
+    assert response.status_code == 200
+    assert b"Firmware debugging, RTOS, and embedded troubleshooting guides" in response.data
+    assert b"/blog/watchdog-reset-debugging" in response.data
+    assert b"firmware debugging tool online" in response.data
+
+
+def test_blog_post_renders_article_content(tmp_path, monkeypatch):
+    test_db = tmp_path / "sentinel.db"
+    monkeypatch.setattr(app_db, "DB_PATH", test_db)
+    app_db.init_db()
+
+    from app import app
+
+    app.config["TESTING"] = True
+
+    with app.test_client() as client:
+        response = client.get("/blog/watchdog-reset-debugging")
+
+    assert response.status_code == 200
+    assert b"Watchdog Reset Debugging: How To Find The Real Cause Fast" in response.data
+    assert b"Need Faster Reset Triage?" in response.data
+    assert b"embedded watchdog troubleshooting" in response.data
 
 
 def test_support_renders_for_guest_session(tmp_path, monkeypatch):
@@ -138,6 +175,25 @@ def test_robots_txt_exposes_sitemap(tmp_path, monkeypatch):
     assert b"Sitemap:" in response.data
     assert b"Disallow: /support" in response.data
     assert b"Disallow: /download-report" in response.data
+
+
+def test_sitemap_lists_home_and_blog_urls(tmp_path, monkeypatch):
+    test_db = tmp_path / "sentinel.db"
+    monkeypatch.setattr(app_db, "DB_PATH", test_db)
+    app_db.init_db()
+
+    from app import app
+
+    app.config["TESTING"] = True
+
+    with app.test_client() as client:
+        response = client.get("/sitemap.xml")
+
+    assert response.status_code == 200
+    assert b"<loc>http://localhost/</loc>" in response.data
+    assert b"<loc>http://localhost/blog</loc>" in response.data
+    assert b"/blog/firmware-debugging-guide" in response.data
+    assert b"/blog/rtos-debugging-guide" in response.data
 
 
 def test_ads_txt_returns_404_when_not_configured(tmp_path, monkeypatch):
